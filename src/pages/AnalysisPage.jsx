@@ -89,16 +89,27 @@ function AnalysisPage() {
   
   const [position, setPosition] = useState({ lat: 38.4237, lng: 27.1428 });
   const [form, setForm] = useState({
+    investmentType: 'ticari',
+    area: 600,
     capacity: 100,
-    cost: 85000,
-    price: 0.18
+    price: 0.22
   });
 
   const handleCalculate = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await calculateSolarROI(position.lat, position.lng, form.capacity, 14, form.cost, form.price);
+      const typeConfig = {
+        ticari: { costPerKwp: 850 },
+        konut: { costPerKwp: 1000 },
+        kamu: { costPerKwp: 800 },
+        arsa: { costPerKwp: 700 }
+      }[form.investmentType];
+
+      const calculatedCost = form.capacity * typeConfig.costPerKwp;
+      const electricityPrice = form.price;
+
+      const res = await calculateSolarROI(position.lat, position.lng, form.capacity, 14, calculatedCost, electricityPrice);
       if (res.success) {
         setResult(res);
       } else {
@@ -133,7 +144,55 @@ function AnalysisPage() {
             
             <div className="space-y-6 relative z-10 flex-1">
               <div>
-                <label className="block text-xs uppercase font-bold tracking-wider text-gray-500 mb-2">Kurulu Güç (kWp)</label>
+                <label className="block text-xs uppercase font-bold tracking-wider text-gray-500 mb-2">Yatırım Tipi</label>
+                <div className="relative">
+                  <select 
+                    value={form.investmentType}
+                    onChange={e => {
+                      const typeConfig = {
+                        ticari: { price: 0.22 },
+                        konut: { price: 0.16 },
+                        kamu: { price: 0.19 },
+                        arsa: { price: 0.13 }
+                      };
+                      setForm({
+                        ...form, 
+                        investmentType: e.target.value,
+                        price: typeConfig[e.target.value].price
+                      });
+                    }}
+                    className="w-full bg-black/40 backdrop-blur-sm border border-white/10 rounded-2xl px-5 py-3 text-white text-lg font-medium focus:outline-none focus:border-brand-blue focus:ring-1 focus:ring-brand-blue transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="ticari" className="bg-black text-white">Ticari Çatı GES</option>
+                    <option value="konut" className="bg-black text-white">Konut Çatı GES</option>
+                    <option value="kamu" className="bg-black text-white">Kamu Kurumu GES</option>
+                    <option value="arsa" className="bg-black text-white">Arsa / Tarla (Arazi GES)</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase font-bold tracking-wider text-gray-500 mb-2">Alan (Metrekare - m²)</label>
+                <input 
+                  type="number" 
+                  value={form.area}
+                  onChange={e => {
+                     const area = Number(e.target.value);
+                     const suggestedCapacity = Math.round(area / 6); // ~6m2 per 1 kWp
+                     setForm({...form, area, capacity: suggestedCapacity});
+                  }}
+                  className="w-full bg-black/40 backdrop-blur-sm border border-white/10 rounded-2xl px-5 py-3 text-white text-lg font-medium focus:outline-none focus:border-brand-blue focus:ring-1 focus:ring-brand-blue transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase font-bold tracking-wider text-gray-500 mb-2 flex justify-between items-end">
+                  <span>Kurulu Güç (kWp)</span>
+                  <span className="text-[10px] text-brand-blue font-normal lowercase tracking-normal bg-brand-blue/10 px-2 py-0.5 rounded-full">Otomatik hesaplandı</span>
+                </label>
                 <input 
                   type="number" 
                   value={form.capacity}
@@ -141,17 +200,12 @@ function AnalysisPage() {
                   className="w-full bg-black/40 backdrop-blur-sm border border-white/10 rounded-2xl px-5 py-3 text-white text-lg font-medium focus:outline-none focus:border-brand-blue focus:ring-1 focus:ring-brand-blue transition-all"
                 />
               </div>
+
               <div>
-                <label className="block text-xs uppercase font-bold tracking-wider text-gray-500 mb-2">Tahmini Maliyet ($)</label>
-                <input 
-                  type="number" 
-                  value={form.cost}
-                  onChange={e => setForm({...form, cost: Number(e.target.value)})}
-                  className="w-full bg-black/40 backdrop-blur-sm border border-white/10 rounded-2xl px-5 py-3 text-white text-lg font-medium focus:outline-none focus:border-brand-blue focus:ring-1 focus:ring-brand-blue transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-xs uppercase font-bold tracking-wider text-gray-500 mb-2">Elektrik Birim Fiyatı ($/kWh)</label>
+                <label className="block text-xs uppercase font-bold tracking-wider text-gray-500 mb-2 flex justify-between items-end">
+                  <span>Elektrik Birim Fiyatı ($/kWh)</span>
+                  <span className="text-[10px] text-brand-blue font-normal lowercase tracking-normal bg-brand-blue/10 px-2 py-0.5 rounded-full">Tipe göre eklendi</span>
+                </label>
                 <input 
                   type="number" step="0.01"
                   value={form.price}
