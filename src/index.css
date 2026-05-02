@@ -16,6 +16,22 @@
 @layer utilities {
   .glass-panel {
     @apply bg-white/[0.02] backdrop-blur-3xl border border-white/[0.05] shadow-2xl;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-panel::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to top, transparent, rgba(16, 185, 129, 0.15) 50%, transparent);
+    transform: translateY(100%);
+    animation: scanlight 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    pointer-events: none;
+    z-index: 0;
   }
   
   .glass-pill {
@@ -50,6 +66,14 @@
 @keyframes marquee {
   0% { transform: translateX(0%); }
   100% { transform: translateX(-50%); }
+}
+
+@keyframes scanlight {
+  0% { transform: translateY(100%); opacity: 0; }
+  5% { opacity: 1; }
+  45% { transform: translateY(-100%); opacity: 1; }
+  50% { transform: translateY(-100%); opacity: 0; }
+  100% { transform: translateY(-100%); opacity: 0; }
 }
 
 /* Elegant Scrollbar */
