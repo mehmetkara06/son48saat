@@ -129,7 +129,7 @@ function LoginPage() {
                   <Wallet className="w-8 h-8 text-sun-green" />
                 </div>
                 <div>
-                  <h2 className="text-3xl font-bold text-white tracking-wide whitespace-nowrap">Yatırımcı</h2>
+                  <h2 className="text-3xl font-bold text-white tracking-wide whitespace-nowrap">Yatırım Yap</h2>
                   <p className="text-gray-400 text-base mt-1 line-clamp-2">Portföyünüzü büyütün, gelir elde edin.</p>
                 </div>
               </div>
@@ -199,7 +199,7 @@ function LoginPage() {
                   <HardHat className="w-8 h-8 text-brand-blue" />
                 </div>
                 <div>
-                  <h2 className="text-3xl font-bold text-white tracking-wide whitespace-nowrap">Geliştirici</h2>
+                  <h2 className="text-3xl font-bold text-white tracking-wide whitespace-nowrap">Alanını Değerlendir</h2>
                   <p className="text-gray-400 text-base mt-1 line-clamp-2">Projenizi oluşturun, fonlamaya açın.</p>
                 </div>
               </div>
