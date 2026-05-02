@@ -55,7 +55,7 @@ const myProjects = [
     investorsCount: 54,
     raised: '$650,000',
     target: '$650,000',
-    image: 'https://images.unsplash.com/photo-1592833159057-6afdaf65f973?auto=format&fit=crop&q=80&w=600',
+    image: 'https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?auto=format&fit=crop&q=80&w=600',
     type: 'solar',
     location: 'Bursa, Türkiye',
     roi: '3.8 Yıl',
@@ -77,7 +77,7 @@ const myProjects = [
     investorsCount: 0,
     raised: '$0',
     target: '$920,000',
-    image: 'https://images.unsplash.com/photo-1613665813446-82a78c468a1d?auto=format&fit=crop&q=80&w=600',
+    image: 'https://images.unsplash.com/photo-1545208942-e0c03dc8ea48?auto=format&fit=crop&q=80&w=600',
     type: 'solar',
     location: 'Şanlıurfa, Türkiye',
     roi: '4.5 Yıl',
@@ -99,7 +99,7 @@ const myProjects = [
     investorsCount: 42,
     raised: '$385,000',
     target: '$1,100,000',
-    image: 'https://images.unsplash.com/photo-1594818345462-1c69140c4046?auto=format&fit=crop&q=80&w=600',
+    image: 'https://images.unsplash.com/photo-1588591795084-1770cb3be374?auto=format&fit=crop&q=80&w=600',
     type: 'solar',
     location: 'Antalya, Manavgat',
     roi: '3.5 Yıl',
@@ -167,6 +167,7 @@ function OwnerDashboardPage() {
             raised: p.raised || '$0',
             target: p.target || p.total_cost || '$0',
             status: p.status || 'Onay Bekliyor',
+            image: p.image || 'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&q=80&w=600',
           }));
           setAllProjects([...myProjects, ...formattedData]);
         } else {
@@ -340,7 +341,7 @@ function OwnerDashboardPage() {
           <div ref={modalRef} className="glass-panel w-full max-w-4xl bg-[#0a0a0a] border border-white/20 rounded-3xl shadow-2xl relative z-10 animate-in zoom-in-95 duration-300 overflow-hidden flex flex-col max-h-full">
             {/* Modal Header Image */}
             <div className="h-48 sm:h-64 relative flex-shrink-0">
-              <img src={selectedProject.image} alt={selectedProject.title} className="w-full h-full object-cover" />
+              <img src={selectedProject.image} alt={selectedProject.title} className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&q=80&w=600'; }} />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-black/40 to-transparent"></div>
               
               <button 
