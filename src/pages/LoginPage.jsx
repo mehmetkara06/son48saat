@@ -49,8 +49,16 @@ function LoginPage() {
         });
         if (error) setErrorMsg(error.message);
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) setErrorMsg('Giriş başarısız. Lütfen bilgilerinizi kontrol edin.');
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        
+        if (error) {
+          setErrorMsg('Giriş başarısız. Lütfen bilgilerinizi kontrol edin.');
+        } else if (data?.user?.user_metadata?.role !== role) {
+          // Yanlış formdan giriş yapılmaya çalışılıyor
+          await supabase.auth.signOut();
+          const accountType = data?.user?.user_metadata?.role === 'owner' ? 'Geliştirici' : 'Yatırımcı';
+          setErrorMsg(`Bu hesap bir ${accountType} hesabı. Lütfen ${accountType} girişini kullanın.`);
+        }
       }
     } catch (err) {
       setErrorMsg('Bir hata oluştu. Lütfen tekrar deneyin.');
