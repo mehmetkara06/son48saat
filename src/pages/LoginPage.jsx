@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sun, Wallet, HardHat, ArrowRight, Info, Zap, Shield, BarChart3, Globe, LineChart, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import InfoCenter from '../components/InfoCenter';
 
 function LoginPage() {
   const [investorForm, setInvestorForm] = useState(null); // 'login' | 'signup' | null
@@ -76,6 +77,17 @@ function LoginPage() {
 
       {/* Header */}
       <div className={`text-center mt-8 mb-10 relative z-10 transition-all duration-700 ease-in-out ${isAnyFormActive ? 'transform scale-90 opacity-80' : 'animate-in fade-in slide-in-from-top-10'}`}>
+        
+        {/* Scrolling Text Marquee (Seamless Loop) */}
+        <div className="w-full overflow-hidden mb-8 py-2 border-y border-white/5 bg-sun-green/5 backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.05)] flex items-center group">
+          <div className="animate-marquee whitespace-nowrap flex w-max text-sun-green/90 font-medium tracking-wide text-sm md:text-base group-hover:[animation-play-state:paused]">
+            <span className="px-6">Sürdürülebilir enerji projelerini, şeffaf veri analizleri ve dijital hisse modelleriyle demokratikleştiriyoruz. İster 1 panel, ister 1 santral fonlayın. &nbsp;&nbsp;&nbsp; • &nbsp;&nbsp;&nbsp;</span>
+            <span className="px-6">Sürdürülebilir enerji projelerini, şeffaf veri analizleri ve dijital hisse modelleriyle demokratikleştiriyoruz. İster 1 panel, ister 1 santral fonlayın. &nbsp;&nbsp;&nbsp; • &nbsp;&nbsp;&nbsp;</span>
+            <span className="px-6">Sürdürülebilir enerji projelerini, şeffaf veri analizleri ve dijital hisse modelleriyle demokratikleştiriyoruz. İster 1 panel, ister 1 santral fonlayın. &nbsp;&nbsp;&nbsp; • &nbsp;&nbsp;&nbsp;</span>
+            <span className="px-6">Sürdürülebilir enerji projelerini, şeffaf veri analizleri ve dijital hisse modelleriyle demokratikleştiriyoruz. İster 1 panel, ister 1 santral fonlayın. &nbsp;&nbsp;&nbsp; • &nbsp;&nbsp;&nbsp;</span>
+          </div>
+        </div>
+
         <div className="flex items-center justify-center mb-4">
           <Sun className="h-12 w-12 text-sun-green animate-float mr-3 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
           <h1 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight drop-shadow-lg">
@@ -288,6 +300,11 @@ function LoginPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Technical Info Center Section */}
+        <div className={`transition-all duration-700 ease-in-out transform origin-top flex flex-col mt-8 ${isAnyFormActive ? 'opacity-0 h-0 max-h-0 overflow-hidden m-0 p-0 scale-95 border-0' : 'opacity-100 max-h-[5000px] animate-in fade-in slide-in-from-bottom-10 delay-700 scale-100'}`}>
+          <InfoCenter />
         </div>
 
       </div>
