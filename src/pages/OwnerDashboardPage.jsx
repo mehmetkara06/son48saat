@@ -149,9 +149,10 @@ function OwnerDashboardPage() {
     setIsDownloading(true);
     setTimeout(() => {
       setIsDownloading(false);
-      // Simüle edilmiş dosya indirme tetikleyicisi
+      // Geçerli bir boş PDF (A4 boyutunda) base64 stringi
+      const validPdfBase64 = 'JVBERi0xLjQKJcOkw7zDtsOfCjIgMCBvYmoKPDwvTGVuZ3RoIDMgMCBSPj4Kc3RyZWFtCmcKZW5kc3RyZWFtCmVuZG9iagozIDAgb2JqCjEKZW5kb2JqCjQgMCBvYmoKPDwvVHlwZSAvUGFnZQovUGFyZW50IDEgMCBSCi9SZXNvdXJjZXMgPDwvRm9udCA8PC9GMSA1IDAgUj4+Pj4KL0NvbnRlbnRzIDIgMCBSCj4+CmVuZG9iago1IDAgb2JqCjw8L1R5cGUgL0ZvbnQKL1N1YnR5cGUgL1R5cGUxCi9CYXNlRm9udCAvVGltZXMtUm9tYW4KPj4KZW5kb2JqCjEgMCBvYmoKPDwvVHlwZSAvUGFnZXMKL0tpZHMgWzQgMCBSXQovQ291bnQgMQovTWVkaWFCb3ggWzAgMCA1OTUgODQyXQo+PgplbmRvYmoKNiAwIG9iago8PC9UeXBlIC9DYXRhbG9nCi9QYWdlcyAxIDAgUgo+PgplbmRvYmoKeHJlZgowIDcKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMjM0IDAwMDAwIG4gCjAwMDAwMDAwMTkgMDAwMDAgbiAKMDAwMDAwMDA1OSAwMDAwMCBuIAowMDAwMDAwMDc4IDAwMDAwIG4gCjAwMDAwMDAxNzQgMDAwMDAgbiAKMDAwMDAwMDI5MyAwMDAwMCBuIAp0cmFpbGVyCjw8L1NpemUgNwovUm9vdCA2IDAgUgo+PgpzdGFydHhyZWYKMzQzCiUlRU9GCg==';
       const link = document.createElement('a');
-      link.href = 'data:application/pdf;base64,JVBERi0xLg=='; // Boş PDF base64
+      link.href = 'data:application/pdf;base64,' + validPdfBase64;
       link.download = `${selectedProject?.title?.replace(/\s+/g, '_')}_Fizibilite.pdf`;
       link.click();
     }, 1500);
