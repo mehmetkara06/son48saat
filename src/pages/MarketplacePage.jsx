@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Search, MapPin, Battery, PieChart, ArrowRight, Star, Map as MapIcon, Grid, X, FileText, CheckCircle, TrendingUp, Sun, Wind, Droplets } from 'lucide-react';
+import { Search, MapPin, Battery, PieChart, ArrowRight, Star, Map as MapIcon, Grid, X, FileText, CheckCircle, TrendingUp, Sun, Wind, Droplets, Info } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { supabase } from '../lib/supabase';
@@ -57,7 +57,7 @@ const projects = [
     fundingProgress: 42,
     minInvestment: '$250',
     totalCost: '$650,000',
-    image: 'https://images.unsplash.com/photo-1592833159057-6afdaf65f973?auto=format&fit=crop&q=80&w=600',
+    image: 'https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?auto=format&fit=crop&q=80&w=600',
     featured: false,
     type: 'solar',
     feasibility: {
@@ -80,7 +80,7 @@ const projects = [
     fundingProgress: 90,
     minInvestment: '$1,000',
     totalCost: '$920,000',
-    image: 'https://images.unsplash.com/photo-1613665813446-82a78c468a1d?auto=format&fit=crop&q=80&w=600',
+    image: 'https://images.unsplash.com/photo-1545208942-e0c03dc8ea48?auto=format&fit=crop&q=80&w=600',
     featured: true,
     type: 'solar',
     feasibility: {
@@ -103,7 +103,7 @@ const projects = [
     fundingProgress: 25,
     minInvestment: '$2,000',
     totalCost: '$2,200,000',
-    image: 'https://images.unsplash.com/photo-1548611635-b6e7827d7d4a?auto=format&fit=crop&q=80&w=600',
+    image: 'https://images.unsplash.com/photo-1611365892502-8eebf1187c2c?auto=format&fit=crop&q=80&w=600',
     featured: false,
     type: 'solar',
     feasibility: {
@@ -126,7 +126,7 @@ const projects = [
     fundingProgress: 60,
     minInvestment: '$500',
     totalCost: '$1,100,000',
-    image: 'https://images.unsplash.com/photo-1594818345462-1c69140c4046?auto=format&fit=crop&q=80&w=600',
+    image: 'https://images.unsplash.com/photo-1588591795084-1770cb3be374?auto=format&fit=crop&q=80&w=600',
     featured: true,
     type: 'solar',
     feasibility: {
@@ -149,7 +149,7 @@ const projects = [
     fundingProgress: 15,
     minInvestment: '$1,000',
     totalCost: '$1,050,000',
-    image: 'https://images.unsplash.com/photo-1625904835711-cbddfa969cb0?auto=format&fit=crop&q=80&w=600',
+    image: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&q=80&w=600',
     featured: false,
     type: 'solar',
     feasibility: {
@@ -280,7 +280,11 @@ function MarketplacePage() {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">Yatırım Fırsatları</h1>
-          <p className="text-gray-400 mt-2 text-lg font-light">Onaylanmış sürdürülebilir enerji projelerine dijital hisselerle ortak olun.</p>
+          <p className="text-gray-400 mt-2 text-lg font-light mb-4">Onaylanmış sürdürülebilir enerji projelerine dijital hisselerle ortak olun.</p>
+          <div className="inline-flex items-center bg-brand-blue/10 border border-brand-blue/20 px-3 py-1.5 rounded-lg shadow-sm">
+            <Info className="w-4 h-4 text-brand-blue mr-2 flex-shrink-0" />
+            <span className="text-sm text-gray-300">SunShare platform sağlayıcı olarak yapılan yatırımlardan <strong className="text-white">%2 işlem komisyonu</strong> almaktadır.</span>
+          </div>
         </div>
         
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
@@ -337,7 +341,7 @@ function MarketplacePage() {
 
               <div className="h-56 overflow-hidden relative rounded-t-[2rem]">
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10"></div>
-                <img src={project.image} alt={project.title} className="w-full h-full object-cover transform group-hover:scale-110 group-hover:rotate-1 transition-transform duration-700 ease-out" />
+                <img src={project.image} alt={project.title} className="w-full h-full object-cover transform group-hover:scale-110 group-hover:rotate-1 transition-transform duration-700 ease-out" onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&q=80&w=600'; }} />
                 <div className="absolute top-5 left-5 z-20 bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-lg flex items-center">
                   {project.type === 'solar' && <Sun className="w-3 h-3 mr-1.5 text-yellow-400" />}
                   {project.type === 'wind' && <Wind className="w-3 h-3 mr-1.5 text-blue-300" />}
@@ -410,7 +414,7 @@ function MarketplacePage() {
                 <Popup className="sunshare-popup">
                   <div className="w-64 p-1">
                     <div className="h-32 -mx-5 -mt-4 mb-3 overflow-hidden rounded-t-lg relative">
-                      <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
+                      <img src={project.image} alt={project.title} className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&q=80&w=600'; }} />
                       {project.featured && (
                         <div className="absolute top-2 right-2 bg-sun-green text-black text-[10px] font-bold px-2 py-1 rounded">
                           FIRSAT
@@ -620,7 +624,7 @@ function MarketplacePage() {
                 ) : isInvesting ? (
                   <form onSubmit={handleInvestSubmit} className="w-full flex flex-col sm:flex-row items-center gap-4 animate-in fade-in slide-in-from-right-4 duration-300">
                     <div className="flex-1 w-full relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                      <span className="absolute left-4 top-[1.1rem] text-gray-400 font-bold">$</span>
                       <input 
                         required 
                         type="number" 
@@ -630,6 +634,9 @@ function MarketplacePage() {
                         placeholder={`Min. ${selectedProject.minInvestment}`} 
                         className="w-full bg-black/40 border border-white/10 rounded-xl pl-8 pr-4 py-3 text-white focus:outline-none focus:border-sun-green/50 transition-all font-semibold" 
                       />
+                      <div className="absolute -bottom-6 left-1 text-[11px] text-gray-400 flex items-center">
+                        <Info className="w-3 h-3 mr-1 text-sun-green" /> Yatırım tutarına <strong className="text-white ml-1">%2 komisyon</strong> dahildir.
+                      </div>
                     </div>
                     <div className="flex w-full sm:w-auto gap-2">
                       <button 
