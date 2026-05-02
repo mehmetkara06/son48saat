@@ -161,6 +161,7 @@ function MarketplacePage() {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'map'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProject, setSelectedProject] = useState(null);
+  const [allProjects, setAllProjects] = useState(projects);
 
   const [isInvesting, setIsInvesting] = useState(false);
   const [investAmount, setInvestAmount] = useState('');
@@ -175,6 +176,11 @@ function MarketplacePage() {
       setInvestAmount('');
     }
   }, [selectedProject]);
+
+  useEffect(() => {
+    const customProjects = JSON.parse(localStorage.getItem('sunshare_custom_projects') || '[]');
+    setAllProjects([...projects, ...customProjects]);
+  }, []);
 
   const handleInvestSubmit = (e) => {
     e.preventDefault();
@@ -197,11 +203,11 @@ function MarketplacePage() {
   // Filter projects based on search query
   const filteredProjects = useMemo(() => {
     const lowerQuery = searchQuery.toLowerCase();
-    return projects.filter(p => 
+    return allProjects.filter(p => 
       p.title.toLowerCase().includes(lowerQuery) || 
       p.location.toLowerCase().includes(lowerQuery)
     );
-  }, [searchQuery]);
+  }, [searchQuery, allProjects]);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 relative">

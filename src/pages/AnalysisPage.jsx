@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { MapPin, Calculator, AlertTriangle, CheckCircle, Zap, DollarSign, TrendingUp, Leaf, AlertCircle } from 'lucide-react';
+import { MapPin, Calculator, AlertTriangle, CheckCircle, Zap, DollarSign, TrendingUp, Leaf, AlertCircle, Download, PlusCircle } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import L from 'leaflet';
@@ -87,6 +87,57 @@ function AnalysisPage() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const resultsRef = useRef(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  const handlePublish = () => {
+    setIsPublishing(true);
+    setTimeout(() => {
+      // Proje objesini oluştur
+      const newProject = {
+        id: Date.now(),
+        title: `Yeni ${form.investmentType.toUpperCase()} GES Projesi`,
+        location: 'Seçili Lokasyon (Harita)',
+        coords: [position.lat, position.lng],
+        capacity: `${form.capacity} kWp`,
+        roi: `${result.data.roiYears} Yıl`,
+        fundingProgress: 0,
+        minInvestment: '$500',
+        totalCost: `$${(form.capacity * 800).toLocaleString('en-US')}`,
+        image: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&q=80&w=600',
+        featured: false,
+        type: 'solar',
+        feasibility: {
+          status: 'Yeni Oluşturuldu',
+          ced: 'Değerlendirmede',
+          gridConnection: 'Başvuru Yapılacak',
+          annualProduction: `${(result.data.yearlyProductionKwh / 1000).toFixed(1)} MWh`,
+          co2Reduction: `${result.data.carbonOffsetTons} Ton / Yıl`,
+          description: 'Bu proje SunShare analiz aracı kullanılarak geliştirici tarafından yeni oluşturulmuştur ve fonlamaya açılmak üzere onay beklemektedir.'
+        }
+      };
+
+      // localStorage'a kaydet
+      const existingProjects = JSON.parse(localStorage.getItem('sunshare_custom_projects') || '[]');
+      existingProjects.push(newProject);
+      localStorage.setItem('sunshare_custom_projects', JSON.stringify(existingProjects));
+
+      setIsPublishing(false);
+      alert('Projeniz başarıyla oluşturuldu ve Pazar Yerine eklendi!');
+    }, 1500);
+  };
+
+  const handleDownloadPDF = () => {
+    setIsDownloading(true);
+    setTimeout(() => {
+      setIsDownloading(false);
+      const validPdfBase64 = 'JVBERi0xLjQKJcOkw7zDtsOfCjIgMCBvYmoKPDwvTGVuZ3RoIDMgMCBSPj4Kc3RyZWFtCmcKZW5kc3RyZWFtCmVuZG9iagozIDAgb2JqCjEKZW5kb2JqCjQgMCBvYmoKPDwvVHlwZSAvUGFnZQovUGFyZW50IDEgMCBSCi9SZXNvdXJjZXMgPDwvRm9udCA8PC9GMSA1IDAgUj4+Pj4KL0NvbnRlbnRzIDIgMCBSCj4+CmVuZG9iago1IDAgb2JqCjw8L1R5cGUgL0ZvbnQKL1N1YnR5cGUgL1R5cGUxCi9CYXNlRm9udCAvVGltZXMtUm9tYW4KPj4KZW5kb2JqCjEgMCBvYmoKPDwvVHlwZSAvUGFnZXMKL0tpZHMgWzQgMCBSXQovQ291bnQgMQovTWVkaWFCb3ggWzAgMCA1OTUgODQyXQo+PgplbmRvYmoKNiAwIG9iago8PC9UeXBlIC9DYXRhbG9nCi9QYWdlcyAxIDAgUgo+PgplbmRvYmoKeHJlZgowIDcKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMjM0IDAwMDAwIG4gCjAwMDAwMDAwMTkgMDAwMDAgbiAKMDAwMDAwMDA1OSAwMDAwMCBuIAowMDAwMDAwMDc4IDAwMDAwIG4gCjAwMDAwMDAxNzQgMDAwMDAgbiAKMDAwMDAwMDI5MyAwMDAwMCBuIAp0cmFpbGVyCjw8L1NpemUgNwovUm9vdCA2IDAgUgo+PgpzdGFydHhyZWYKMzQzCiUlRU9GCg==';
+      const link = document.createElement('a');
+      link.href = 'data:application/pdf;base64,' + validPdfBase64;
+      link.download = `Yeni_Proje_Nihai_Fizibilite.pdf`;
+      link.click();
+    }, 1500);
+  };
   
   const [position, setPosition] = useState({ lat: 38.4237, lng: 27.1428 });
   const [form, setForm] = useState({
@@ -341,6 +392,34 @@ function AnalysisPage() {
                     <Area type="monotone" dataKey="nakitAkisi" stroke="#3b82f6" strokeWidth={4} fillOpacity={1} fill="url(#colorNakit)" />
                   </AreaChart>
                 </ResponsiveContainer>
+              </div>
+              
+              <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-start">
+                <button 
+                  onClick={handleDownloadPDF}
+                  disabled={isDownloading || isPublishing}
+                  className="px-6 py-3 bg-brand-blue/10 text-brand-blue border border-brand-blue/30 font-extrabold rounded-xl hover:bg-brand-blue hover:text-white transition-all duration-300 disabled:opacity-50 flex items-center shadow-[0_0_20px_rgba(59,130,246,0.15)] hover:shadow-[0_0_30px_rgba(59,130,246,0.4)] hover:scale-105 active:scale-95"
+                >
+                  {isDownloading ? (
+                    <div className="w-5 h-5 border-2 border-brand-blue border-t-transparent rounded-full animate-spin mr-2"></div>
+                  ) : (
+                    <Download className="w-5 h-5 mr-2" />
+                  )}
+                  {isDownloading ? 'PDF Hazırlanıyor...' : 'Raporu PDF Olarak İndir'}
+                </button>
+
+                <button 
+                  onClick={handlePublish}
+                  disabled={isDownloading || isPublishing}
+                  className="px-6 py-3 bg-sun-green text-black font-extrabold rounded-xl hover:bg-emerald-400 transition-all duration-300 disabled:opacity-50 flex items-center shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] hover:scale-105 active:scale-95"
+                >
+                  {isPublishing ? (
+                    <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></div>
+                  ) : (
+                    <PlusCircle className="w-5 h-5 mr-2" />
+                  )}
+                  {isPublishing ? 'Oluşturuluyor...' : 'Projeyi Oluştur ve Pazara Ekle'}
+                </button>
               </div>
             </div>
 
