@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { Search, MapPin, Battery, PieChart, ArrowRight, Star, Map as MapIcon, Grid, X, FileText, CheckCircle, TrendingUp, Sun, Wind, Droplets } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
+import { supabase } from '../lib/supabase';
 
 // Fix Leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -184,8 +185,31 @@ function MarketplacePage() {
   }, [selectedProject]);
 
   useEffect(() => {
-    const customProjects = JSON.parse(localStorage.getItem('sunshare_custom_projects') || '[]');
-    setAllProjects([...projects, ...customProjects]);
+    const fetchProjects = async () => {
+      try {
+        const { data, error } = await supabase.from('projects').select('*');
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          // Gelen verideki snake_case alanları camelCase'e dönüştür
+          const formattedData = data.map(p => ({
+            ...p,
+            fundingProgress: p.funding_progress,
+            minInvestment: p.min_investment,
+            totalCost: p.total_cost,
+            riskScores: p.risk_scores,
+          }));
+          setAllProjects([...projects, ...formattedData]);
+        } else {
+          setAllProjects(projects);
+        }
+      } catch (err) {
+        console.error('Projeler Supabase üzerinden yüklenemedi:', err);
+        setAllProjects(projects);
+      }
+    };
+    
+    fetchProjects();
   }, []);
 
   const handleInvestSubmit = (e) => {

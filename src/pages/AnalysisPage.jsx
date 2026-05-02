@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 're
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import L from 'leaflet';
 import html2pdf from 'html2pdf.js';
+import { supabase } from '../lib/supabase';
 
 // Fix for default marker icons in react-leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -285,25 +286,23 @@ function AnalysisPage() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     setIsPublishing(true);
 
-    setTimeout(() => {
-      // Proje objesini oluştur
+    try {
       const newProject = {
-        id: Date.now(),
         title: `Yeni ${form.investmentType.toUpperCase()} GES Projesi`,
         location: addressName,
         coords: [position.lat, position.lng],
         capacity: `${form.capacity} kWp`,
         roi: `${result.data.roiYears} Yıl`,
-        fundingProgress: 0,
-        minInvestment: '$500',
-        totalCost: `$${(form.capacity * 800).toLocaleString('en-US')}`,
+        funding_progress: 0,
+        min_investment: '$500',
+        total_cost: `$${(form.capacity * 800).toLocaleString('en-US')}`,
         image: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&q=80&w=600',
         featured: false,
         type: 'solar',
-        riskScores: result.data.riskScores,
+        risk_scores: result.data.riskScores,
         meteo: result.meteo,
         feasibility: {
           status: 'Yeni Oluşturuldu',
@@ -315,14 +314,17 @@ function AnalysisPage() {
         }
       };
 
-      // localStorage'a kaydet
-      const existingProjects = JSON.parse(localStorage.getItem('sunshare_custom_projects') || '[]');
-      existingProjects.push(newProject);
-      localStorage.setItem('sunshare_custom_projects', JSON.stringify(existingProjects));
+      const { error } = await supabase.from('projects').insert([newProject]);
 
-      setIsPublishing(false);
+      if (error) throw error;
+
       alert('Projeniz başarıyla oluşturuldu ve Pazar Yerine eklendi!');
-    }, 1500);
+    } catch (err) {
+      console.error('Supabase Error:', err);
+      alert('Proje kaydedilirken bir hata oluştu: ' + err.message);
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   const handleDownloadPDF = () => {
