@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Target, TrendingUp, Users, Activity, Plus, ArrowRight, Info, MapPin, CheckCircle, FileText, X, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import html2pdf from 'html2pdf.js';
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 const UnitTooltip = ({ unit, description }) => (
   <span className="relative group/unit inline-flex items-center ml-1 cursor-help border-b border-dashed border-gray-500 z-20">
@@ -146,7 +147,34 @@ const StatCard = ({ title, value, icon: Icon, subtitle, colorClass, tooltip }) =
 function OwnerDashboardPage() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [allProjects, setAllProjects] = useState(myProjects);
   const modalRef = useRef(null);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const { data, error } = await supabase.from('projects').select('*');
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          const formattedData = data.map(p => ({
+            ...p,
+            fundingProgress: p.funding_progress,
+            minInvestment: p.min_investment,
+            totalCost: p.total_cost,
+            riskScores: p.risk_scores,
+          }));
+          setAllProjects([...myProjects, ...formattedData]);
+        } else {
+          setAllProjects(myProjects);
+        }
+      } catch (err) {
+        console.error('Projeler yüklenemedi:', err);
+      }
+    };
+    
+    fetchProjects();
+  }, []);
 
   const handleDownloadPDF = () => {
     setIsDownloading(true);
@@ -245,7 +273,7 @@ function OwnerDashboardPage() {
         </div>
         
         <div className="space-y-4">
-          {myProjects.map(project => (
+          {allProjects.map(project => (
             <div 
               key={project.id} 
               className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.05] hover:border-white/20 transition-all duration-300 group shadow-sm hover:shadow-xl flex flex-col"
