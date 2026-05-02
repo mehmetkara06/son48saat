@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { MapPin, Calculator, AlertTriangle, CheckCircle, Zap, DollarSign, TrendingUp, Leaf, AlertCircle, Download, PlusCircle } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
@@ -90,28 +90,15 @@ function AnalysisPage() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
 
-  const handlePublish = async () => {
+  const handlePublish = () => {
     setIsPublishing(true);
-
-    let locationName = 'Türkiye';
-    try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.lat}&lon=${position.lng}`);
-      const data = await res.json();
-      if (data && data.address) {
-        const city = data.address.city || data.address.province || data.address.state || '';
-        const district = data.address.town || data.address.county || data.address.district || '';
-        locationName = [district, city].filter(Boolean).join(', ') || 'Türkiye';
-      }
-    } catch (err) {
-      console.warn("Reverse geocoding failed", err);
-    }
 
     setTimeout(() => {
       // Proje objesini oluştur
       const newProject = {
         id: Date.now(),
         title: `Yeni ${form.investmentType.toUpperCase()} GES Projesi`,
-        location: locationName,
+        location: addressName,
         coords: [position.lat, position.lng],
         capacity: `${form.capacity} kWp`,
         roi: `${result.data.roiYears} Yıl`,
@@ -154,6 +141,34 @@ function AnalysisPage() {
   };
   
   const [position, setPosition] = useState({ lat: 38.4237, lng: 27.1428 });
+  const [addressName, setAddressName] = useState('İzmir');
+
+  useEffect(() => {
+    const fetchAddress = async () => {
+      setAddressName('Adres aranıyor...');
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.lat}&lon=${position.lng}`);
+        const data = await res.json();
+        if (data && data.address) {
+          const city = data.address.city || data.address.province || data.address.state || '';
+          const district = data.address.town || data.address.county || data.address.district || '';
+          setAddressName([district, city].filter(Boolean).join(', ') || 'Türkiye');
+        } else {
+          setAddressName('Bilinmeyen Konum');
+        }
+      } catch (err) {
+        setAddressName('Konum bulunamadı');
+      }
+    };
+    
+    // Hızlı tıklamaları (debounce) yönetmek için timeout ekliyoruz
+    const timerId = setTimeout(() => {
+      fetchAddress();
+    }, 500);
+
+    return () => clearTimeout(timerId);
+  }, [position]);
+
   const [form, setForm] = useState({
     investmentType: 'ticari',
     area: 600,
@@ -284,10 +299,18 @@ function AnalysisPage() {
               </div>
               
               <div className="pt-4 mt-auto">
-                <label className="block text-xs uppercase font-bold tracking-wider text-gray-500 mb-2">Seçili Koordinatlar</label>
-                <div className="bg-brand-blue/5 border border-brand-blue/20 rounded-2xl p-4 text-brand-blue font-mono flex items-center">
-                  <MapPin className="w-5 h-5 mr-3" />
-                  <span className="font-semibold text-lg">{position.lat.toFixed(4)}, {position.lng.toFixed(4)}</span>
+                <label className="block text-xs uppercase font-bold tracking-wider text-gray-500 mb-2">Seçili Koordinatlar & Adres</label>
+                <div className="bg-brand-blue/5 border border-brand-blue/20 rounded-2xl p-4 text-brand-blue flex flex-col gap-3">
+                  <div className="font-mono flex items-center">
+                    <MapPin className="w-5 h-5 mr-3 flex-shrink-0" />
+                    <span className="font-semibold text-lg">{position.lat.toFixed(4)}, {position.lng.toFixed(4)}</span>
+                  </div>
+                  <div className="text-sm font-medium text-brand-blue/80 bg-brand-blue/10 px-3 py-2 rounded-xl border border-brand-blue/20 flex items-center">
+                    {addressName === 'Adres aranıyor...' ? (
+                      <div className="w-4 h-4 border-2 border-brand-blue border-t-transparent rounded-full animate-spin mr-2"></div>
+                    ) : null}
+                    {addressName}
+                  </div>
                 </div>
               </div>
             </div>
