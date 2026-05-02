@@ -10,18 +10,21 @@ import { supabase } from './lib/supabase';
 
 function App() {
   const [role, setRole] = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check active session on initial load
     supabase.auth.getSession().then(({ data: { session } }) => {
       setRole(session?.user?.user_metadata?.role || null);
+      setUser(session?.user || null);
       setLoading(false);
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setRole(session?.user?.user_metadata?.role || null);
+      setUser(session?.user || null);
     });
 
     return () => subscription.unsubscribe();
@@ -42,7 +45,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Layout role={role} onLogout={handleLogout} />}>
+        <Route path="/" element={<Layout role={role} onLogout={handleLogout} userFullName={user?.user_metadata?.full_name} />}>
           {role === 'investor' ? (
             <>
               <Route index element={<Navigate to="/dashboard" replace />} />

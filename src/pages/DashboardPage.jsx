@@ -64,11 +64,7 @@ function DashboardPage() {
   const [expandedAsset, setExpandedAsset] = useState(null);
   const [timeframe, setTimeframe] = useState('monthly');
   
-  // Withdraw Modal States
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [withdrawMethod, setWithdrawMethod] = useState('iban'); // 'iban' | 'card'
-  const [withdrawStatus, setWithdrawStatus] = useState('idle'); // 'idle' | 'processing' | 'success'
-  const [withdrawAmount, setWithdrawAmount] = useState('');
+
 
   const projects = [
     { 
@@ -103,20 +99,7 @@ function DashboardPage() {
     },
   ];
 
-  const handleWithdrawSubmit = (e) => {
-    e.preventDefault();
-    setWithdrawStatus('processing');
-    
-    // Simulate API call
-    setTimeout(() => {
-      setWithdrawStatus('success');
-      setTimeout(() => {
-        setIsModalOpen(false);
-        setWithdrawStatus('idle');
-        setWithdrawAmount('');
-      }, 3000);
-    }, 1500);
-  };
+
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 relative">
@@ -125,13 +108,7 @@ function DashboardPage() {
           <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">Portföy Özeti</h1>
           <p className="text-gray-400 mt-2 text-lg font-light">Yatırımlarınızın anlık durumunu ve getirilerini takip edin.</p>
         </div>
-        <button 
-          onClick={() => setIsModalOpen(true)} 
-          className="px-6 py-3 bg-gradient-to-r from-sun-green to-emerald-500 text-black font-bold border border-transparent rounded-full hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center shadow-lg group"
-        >
-          <ArrowUpRight className="w-5 h-5 mr-2 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-          Para Çek
-        </button>
+
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -239,106 +216,7 @@ function DashboardPage() {
         </div>
       </div>
 
-      {/* Withdraw Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => withdrawStatus !== 'processing' && setIsModalOpen(false)}></div>
-          
-          <div className="glass-panel w-full max-w-md bg-[#0a0a0a] border border-white/20 p-8 rounded-3xl shadow-2xl relative z-10 animate-in zoom-in-95 duration-300 overflow-hidden">
-            {withdrawStatus === 'success' ? (
-              <div className="flex flex-col items-center justify-center text-center py-8">
-                <div className="w-20 h-20 bg-sun-green/20 rounded-full flex items-center justify-center mb-6">
-                  <CheckCircle2 className="w-10 h-10 text-sun-green" />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-2">Talebiniz Alındı!</h3>
-                <p className="text-gray-400">Çekim işleminiz işleme alındı. Tutar 1-3 iş günü içerisinde belirttiğiniz hesaba aktarılacaktır.</p>
-              </div>
-            ) : (
-              <>
-                <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
-                  <h3 className="text-xl font-bold text-white flex items-center">
-                    <Wallet className="w-5 h-5 mr-2 text-sun-green" />
-                    Para Çekme İşlemi
-                  </h3>
-                  <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white transition-colors">
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
 
-                <div className="mb-6 bg-sun-green/10 border border-sun-green/20 p-4 rounded-2xl flex justify-between items-center">
-                  <span className="text-gray-300 text-sm">Kullanılabilir Nakit Bakiye</span>
-                  <span className="text-2xl font-bold text-sun-green">$12,450.00</span>
-                </div>
-
-                <form onSubmit={handleWithdrawSubmit} className="space-y-5">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Çekilecek Tutar (USD)</label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-lg">$</span>
-                      <input 
-                        required 
-                        type="number" 
-                        min="50" 
-                        max="12450"
-                        value={withdrawAmount}
-                        onChange={(e) => setWithdrawAmount(e.target.value)}
-                        placeholder="0.00" 
-                        className="w-full bg-black/40 border border-white/10 rounded-xl pl-8 pr-4 py-3.5 text-white focus:outline-none focus:border-sun-green/50 focus:ring-1 focus:ring-sun-green/50 transition-all font-semibold text-lg placeholder:text-gray-600" 
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Çekim Yöntemi</label>
-                    <div className="flex gap-2 p-1 bg-black/40 border border-white/10 rounded-xl">
-                      <button 
-                        type="button"
-                        onClick={() => setWithdrawMethod('iban')}
-                        className={`flex-1 flex items-center justify-center py-2.5 rounded-lg text-sm font-medium transition-all ${withdrawMethod === 'iban' ? 'bg-white/10 text-white shadow-md border border-white/5' : 'text-gray-500 hover:text-gray-300 border border-transparent'}`}
-                      >
-                        <Building2 className="w-4 h-4 mr-2" /> Banka (IBAN)
-                      </button>
-                      <button 
-                        type="button"
-                        onClick={() => setWithdrawMethod('card')}
-                        className={`flex-1 flex items-center justify-center py-2.5 rounded-lg text-sm font-medium transition-all ${withdrawMethod === 'card' ? 'bg-white/10 text-white shadow-md border border-white/5' : 'text-gray-500 hover:text-gray-300 border border-transparent'}`}
-                      >
-                        <CreditCard className="w-4 h-4 mr-2" /> Kredi Kartı
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4 pt-2">
-                    {withdrawMethod === 'iban' ? (
-                      <>
-                        <input required type="text" placeholder="Hesap Sahibi (Ad Soyad)" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-sun-green/50 focus:ring-1 focus:ring-sun-green/50 transition-all text-sm placeholder:text-gray-500" />
-                        <input required type="text" placeholder="TR00 0000 0000 0000 0000 0000 00" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-sun-green/50 focus:ring-1 focus:ring-sun-green/50 transition-all text-sm font-mono placeholder:text-gray-500" />
-                      </>
-                    ) : (
-                      <>
-                        <input required type="text" placeholder="Kart Üzerindeki İsim" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-sun-green/50 focus:ring-1 focus:ring-sun-green/50 transition-all text-sm placeholder:text-gray-500" />
-                        <input required type="text" placeholder="0000 0000 0000 0000" maxLength={19} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-sun-green/50 focus:ring-1 focus:ring-sun-green/50 transition-all text-sm font-mono placeholder:text-gray-500" />
-                        <div className="flex gap-4">
-                          <input required type="text" placeholder="AA/YY" maxLength={5} className="w-1/2 bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-sun-green/50 focus:ring-1 focus:ring-sun-green/50 transition-all text-sm placeholder:text-gray-500" />
-                          <input required type="text" placeholder="CVV" maxLength={3} className="w-1/2 bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-sun-green/50 focus:ring-1 focus:ring-sun-green/50 transition-all text-sm placeholder:text-gray-500" />
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  <button 
-                    disabled={withdrawStatus === 'processing' || !withdrawAmount} 
-                    type="submit" 
-                    className="w-full bg-gradient-to-r from-sun-green to-emerald-500 text-black font-bold py-4 rounded-xl hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:scale-[1.02] active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:scale-100 mt-6 flex items-center justify-center text-lg"
-                  >
-                    {withdrawStatus === 'processing' ? 'İşleniyor...' : 'Talebi Onayla'}
-                  </button>
-                </form>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
