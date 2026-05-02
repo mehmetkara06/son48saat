@@ -194,10 +194,14 @@ function MarketplacePage() {
           // Gelen verideki snake_case alanları camelCase'e dönüştür
           const formattedData = data.map(p => ({
             ...p,
-            fundingProgress: p.funding_progress,
-            minInvestment: p.min_investment,
-            totalCost: p.total_cost,
+            fundingProgress: p.funding_progress || 0,
+            minInvestment: p.min_investment || '$0',
+            totalCost: p.total_cost || '$0',
             riskScores: p.risk_scores,
+            investorsCount: p.investors_count || 0,
+            raised: p.raised || '$0',
+            target: p.target || p.total_cost || '$0',
+            status: p.status || 'Onay Bekliyor',
           }));
           setAllProjects([...projects, ...formattedData]);
         } else {

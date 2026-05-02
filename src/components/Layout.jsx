@@ -179,6 +179,16 @@ function Layout({ role, onLogout, userFullName }) {
 
             <div className="h-8 w-px bg-white/10 mx-1"></div>
 
+            {/* Quick Balance Display */}
+            {isInvestor && (
+              <div className="hidden md:flex items-center px-3 py-1.5 mr-1 bg-sun-green/10 border border-sun-green/20 rounded-full">
+                <Wallet className="w-4 h-4 text-sun-green mr-2" />
+                <span className="text-sun-green font-bold text-sm drop-shadow-md">
+                  ${balance.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                </span>
+              </div>
+            )}
+
             {/* Profile Menu */}
             <div className="relative flex items-center">
               <button 
