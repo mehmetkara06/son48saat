@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Wallet, Zap, Leaf, TrendingUp, ArrowUpRight, Activity, X, CreditCard, Building2, CheckCircle2 } from 'lucide-react';
@@ -61,6 +61,59 @@ const StatCard = ({ title, value, subtext, icon: Icon, trend }) => (
   </div>
 );
 
+const staticProjects = [
+  { 
+    name: 'Güneş Tarlası - İzmir', 
+    share: '15%', 
+    value: '$45,000', 
+    status: 'Aktif',
+    location: 'İzmir, Bergama',
+    address: 'Kozak Yaylası Mevkii, Parsel 4',
+    energyReturn: 'Yıllık ~180 MWh',
+    feasibility: 'Yıllık 3.100 saat güneşlenme. Şebeke entegrasyonu tamamlandı. Sosyal onay yüksek. Amortisman süresi: 4.2 yıl.'
+  },
+  { 
+    name: 'Endüstriyel Çatı - Manisa', 
+    share: '8%', 
+    value: '$24,000', 
+    status: 'Aktif',
+    location: 'Manisa, Yunusemre',
+    address: 'Organize Sanayi Bölgesi, 3. Kısım',
+    energyReturn: 'Yıllık ~95 MWh',
+    feasibility: 'Sanayi bölgesi teşvikleri mevcut. Öz tüketim modeli ile şebeke maliyeti sıfır. Amortisman süresi: 3.8 yıl.'
+  },
+  { 
+    name: 'GES Projesi - Antalya', 
+    share: '12%', 
+    value: '$55,500', 
+    status: 'Pasif',
+    location: 'Antalya, Korkuteli',
+    address: 'Bozova Köyü Arazisi, Parsel 12',
+    energyReturn: 'Yıllık ~250 MWh (Tahmini)',
+    feasibility: 'Yüksek irtifa ve soğuk hava nedeniyle panel verimi maksimumda. ÇED raporu olumlu. Amortisman süresi: 4.5 yıl.'
+  },
+];
+
+function buildProjects() {
+  const portfolio = JSON.parse(localStorage.getItem('sunshare_portfolio') || '[]');
+  const purchased = portfolio.map(p => ({
+    name:         p.name,
+    share:        'Pazar Yeri',
+    value:        `$${p.investedAmount.toLocaleString('en-US', { maximumFractionDigits: 0 })}`,
+    status:       p.status || 'Aktif',
+    location:     p.location,
+    address:      p.location,
+    energyReturn: `${p.capacity} kapasite / ROI: ${p.roi}`,
+    feasibility:  `Pazar yeri üzerinden satın alındı. Yatırım tutarı: $${p.investedAmount.toLocaleString()}. Satın alma tarihi: ${new Date(p.purchasedAt).toLocaleDateString('tr-TR')}.`,
+    _fromMarket:  true,
+  }));
+  const merged = [...staticProjects];
+  purchased.forEach(p => {
+    if (!merged.find(s => s.name === p.name)) merged.push(p);
+  });
+  return merged;
+}
+
 function DashboardPage() {
   const [expandedAsset, setExpandedAsset] = useState(null);
   const [timeframe, setTimeframe] = useState('monthly');
@@ -69,6 +122,15 @@ function DashboardPage() {
   const [withdrawStatus, setWithdrawStatus] = useState('idle');
 
   const { setBalance } = useOutletContext() || { setBalance: () => {} };
+
+  const [projects, setProjects] = useState(buildProjects);
+
+  // Sayfa odaklandığında (marketplace'den döndüğünde) listeyi güncelle
+  useEffect(() => {
+    const onFocus = () => setProjects(buildProjects());
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, []);
 
   const handleWithdrawAsset = (e, index) => {
     e.stopPropagation();
@@ -86,39 +148,6 @@ function DashboardPage() {
       }, 2500);
     }, 1500);
   };
-
-  const projects = [
-    { 
-      name: 'Güneş Tarlası - İzmir', 
-      share: '15%', 
-      value: '$45,000', 
-      status: 'Aktif',
-      location: 'İzmir, Bergama',
-      address: 'Kozak Yaylası Mevkii, Parsel 4',
-      energyReturn: 'Yıllık ~180 MWh',
-      feasibility: 'Yıllık 3.100 saat güneşlenme. Şebeke entegrasyonu tamamlandı. Sosyal onay yüksek. Amortisman süresi: 4.2 yıl.'
-    },
-    { 
-      name: 'Endüstriyel Çatı - Manisa', 
-      share: '8%', 
-      value: '$24,000', 
-      status: 'Aktif',
-      location: 'Manisa, Yunusemre',
-      address: 'Organize Sanayi Bölgesi, 3. Kısım',
-      energyReturn: 'Yıllık ~95 MWh',
-      feasibility: 'Sanayi bölgesi teşvikleri mevcut. Öz tüketim modeli ile şebeke maliyeti sıfır. Amortisman süresi: 3.8 yıl.'
-    },
-    { 
-      name: 'GES Projesi - Antalya', 
-      share: '12%', 
-      value: '$55,500', 
-      status: 'Pasif',
-      location: 'Antalya, Korkuteli',
-      address: 'Bozova Köyü Arazisi, Parsel 12',
-      energyReturn: 'Yıllık ~250 MWh (Tahmini)',
-      feasibility: 'Yüksek irtifa ve soğuk hava nedeniyle panel verimi maksimumda. ÇED raporu olumlu. Amortisman süresi: 4.5 yıl.'
-    },
-  ];
 
 
 
