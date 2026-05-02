@@ -43,7 +43,8 @@ const projects = [
       annualProduction: '3.750 MWh',
       co2Reduction: '1.500 Ton / Yıl',
       description: 'Karapınar bölgesinde yer alan arazi, Türkiye\'nin en yüksek güneşlenme süresine sahip bölgelerinden biridir. Eğimsiz arazi yapısı sayesinde kurulum maliyetleri minimuma indirilmiş olup, çift yönlü (bifacial) paneller kullanılarak üretim verimliliği %15 artırılmıştır. Projenin şebeke bağlantı noktasına uzaklığı sadece 1.2 km\'dir.'
-    }
+    },
+    riskScores: { production: 3.2, thermal: 10.5, meteorological: 7.0, financial: 8.0, totalRiskLevel: 'Düşük' }
   },
   {
     id: 2,
@@ -65,7 +66,8 @@ const projects = [
       annualProduction: '1.100 MWh',
       co2Reduction: '450 Ton / Yıl',
       description: 'Bursa Organize Sanayi Bölgesinde yer alan tekstil fabrikasının çatısına kurulacak olan sistem, fabrikanın gündüz enerji ihtiyacının %85\'ini karşılayacaktır. Öz tüketim modeli ile şebeke satış maliyetleri sıfırlanmış, endüstriyel tarife üzerinden sağlanan tasarruf ile amortisman süresi 3.8 yıla kadar düşürülmüştür.'
-    }
+    },
+    riskScores: { production: 4.1, thermal: 8.2, meteorological: 9.5, financial: 8.0, totalRiskLevel: 'Düşük' }
   },
   {
     id: 3,
@@ -87,7 +89,8 @@ const projects = [
       annualProduction: '1.950 MWh',
       co2Reduction: '800 Ton / Yıl',
       description: 'Tarımsal arazilerin hem elektrik üretimi hem de tarım için eş zamanlı kullanıldığı Agrivoltaik sistemdir. Paneller, gölge seven tarım ürünleri (örneğin sera domatesi) için ideal ortamı sağlarken, buharlaşmayı azaltarak sulama suyundan %30 tasarruf sağlamaktadır. Bölgenin yüksek güneş radyasyonu verimliliği garanti etmektedir.'
-    }
+    },
+    riskScores: { production: 2.8, thermal: 14.2, meteorological: 5.5, financial: 8.0, totalRiskLevel: 'Düşük' }
   },
   {
     id: 4,
@@ -109,7 +112,8 @@ const projects = [
       annualProduction: '5.200 MWh',
       co2Reduction: '2.100 Ton / Yıl',
       description: 'Güneşi doğuşundan batışına kadar takip eden (Single-Axis Tracker) sistemler kullanılarak standart sabit panellere göre %25 daha fazla enerji üretimi hedeflenmektedir. İç Anadolu\'nun düz arazisi ve yüksek ışınım oranları bu projeyi son derece verimli kılmaktadır.'
-    }
+    },
+    riskScores: { production: 3.5, thermal: 9.0, meteorological: 8.2, financial: 8.0, totalRiskLevel: 'Düşük' }
   },
   {
     id: 5,
@@ -131,7 +135,8 @@ const projects = [
       annualProduction: '2.400 MWh',
       co2Reduction: '950 Ton / Yıl',
       description: 'Antalya Manavgat bölgesinde bulunan 5 yıldızlı bir otelin 400 araçlık açık otoparkının üstü güneş panelleriyle (Carport) kapatılacaktır. Hem araçlara gölge sağlanacak hem de otelin yoğun yaz aylarındaki yüksek klima (soğutma) elektrik faturası düşürülecektir. Öz tüketim modeli sayesinde çok hızlı amortisman öngörülmektedir.'
-    }
+    },
+    riskScores: { production: 2.5, thermal: 12.0, meteorological: 5.0, financial: 8.0, totalRiskLevel: 'Düşük' }
   },
   {
     id: 6,
@@ -153,7 +158,8 @@ const projects = [
       annualProduction: '1.600 MWh',
       co2Reduction: '650 Ton / Yıl',
       description: 'Göl yüzeyine kurulacak olan Yüzer Güneş Enerji Santrali projesidir. Suyun soğutucu etkisi sayesinde paneller standart arazi kurulumlarına göre %12 daha fazla enerji üretir. Ayrıca su yüzeyini kaplayarak yaz aylarındaki şiddetli buharlaşmayı önler ve tatlı su rezervinin korunmasına ekolojik katkı sağlar.'
-    }
+    },
+    riskScores: { production: 5.0, thermal: 6.5, meteorological: 11.0, financial: 8.0, totalRiskLevel: 'Orta' }
   }
 ];
 
@@ -502,6 +508,47 @@ function MarketplacePage() {
                   </div>
                 </div>
               </div>
+
+              {/* Action Bar */}
+
+              {/* 4-Layer Risk Analysis */}
+              {selectedProject.riskScores && (
+                <div className="mb-8">
+                  <h4 className="text-lg font-bold text-white mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2 text-sun-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Detaylı Risk Analizi (4 Katman)
+                    <span className={`ml-auto text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
+                      selectedProject.riskScores.totalRiskLevel === 'Çok Düşük' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                      selectedProject.riskScores.totalRiskLevel === 'Düşük'     ? 'bg-sun-green/10 text-sun-green border-sun-green/20' :
+                      selectedProject.riskScores.totalRiskLevel === 'Orta'      ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
+                      selectedProject.riskScores.totalRiskLevel === 'Yüksek'    ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
+                      'bg-red-500/10 text-red-400 border-red-500/20'
+                    }`}>
+                      {selectedProject.riskScores.totalRiskLevel}
+                    </span>
+                  </h4>
+                  <div className="space-y-4 bg-black/30 border border-white/5 p-5 rounded-2xl">
+                    {[
+                      { label: 'Üretim İstikrarsızlığı', value: selectedProject.riskScores.production, color: 'bg-purple-500', desc: 'PVGIS yıllık üretim sapması' },
+                      { label: 'Termal Kayıp Riski', value: selectedProject.riskScores.thermal, color: 'bg-red-500', desc: 'Sıcaklık bazlı panel verim kaybı' },
+                      { label: 'Meteorolojik Sapma', value: selectedProject.riskScores.meteorological, color: 'bg-blue-500', desc: 'Bulutluluk oranı etkisi' },
+                      { label: 'Finansal Dalgalanma', value: selectedProject.riskScores.financial, color: 'bg-emerald-500', desc: 'Enflasyon & fiyat volatilitesi' },
+                    ].map((risk, i) => (
+                      <div key={i}>
+                        <div className="flex justify-between text-xs font-bold uppercase tracking-wider mb-1.5">
+                          <span className="text-gray-400 flex items-center">{risk.label} <span className="text-gray-600 font-normal normal-case tracking-normal ml-2 hidden sm:inline">— {risk.desc}</span></span>
+                          <span className="text-white">%{risk.value}</span>
+                        </div>
+                        <div className="h-2 bg-black/60 rounded-full overflow-hidden border border-white/5">
+                          <div className={`h-full ${risk.color} relative transition-all duration-1000`} style={{ width: `${risk.value}%` }}>
+                            <div className="absolute inset-0 bg-white/20 w-full animate-[pulse_2s_ease-in-out_infinite]"></div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Action Bar */}
               <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-gradient-to-r from-sun-green/10 to-transparent border border-sun-green/20 rounded-2xl mt-4 min-h-[90px]">

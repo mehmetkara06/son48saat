@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MapPin, Calculator, AlertTriangle, CheckCircle, Zap, DollarSign, TrendingUp, Leaf, AlertCircle, Download, PlusCircle } from 'lucide-react';
+import { MapPin, Calculator, AlertTriangle, CheckCircle, Zap, DollarSign, TrendingUp, Leaf, AlertCircle, Download, PlusCircle, Sun, Cloud, Wind, Clock } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import L from 'leaflet';
@@ -13,26 +13,195 @@ L.Icon.Default.mergeOptions({
 });
 
 export async function calculateSolarROI(lat, lon, peakPower, systemLoss = 14, installationCost, electricityPrice) {
+  // Open-Meteo Archive API - Son 1 yılın gerçek iklim verisini çek (CORS-free)
+  // Bu sayede her konum kendine özgü güneşlenme, sıcaklık ve bulutluluk değerleri gösterir
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const endDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const startDate = `${now.getFullYear() - 1}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+  const archiveUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startDate}&end_date=${endDate}&daily=shortwave_radiation_sum,sunshine_duration,temperature_2m_max,temperature_2m_min,wind_speed_10m_max&timezone=auto`;
+  const currentUrl  = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,cloud_cover,wind_speed_10m&timezone=auto`;
+
+  const avg = arr => {
+    const valid = (arr || []).filter(v => v !== null && v !== undefined);
+    return valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : null;
+  };
+  const stdDev = arr => {
+    const m = avg(arr);
+    if (m === null) return 0;
+    const valid = (arr || []).filter(v => v !== null);
+    return Math.sqrt(valid.reduce((s, v) => s + (v - m) ** 2, 0) / valid.length);
+  };
+
+  let meteoData = null;
+  let yearlyProduction = null;
+  let pvgisData = null;
+  let isMock = false;
+
   try {
-    const pvgisUrl = `https://re.jrc.ec.europa.eu/api/v5_2/PVcalc?lat=${lat}&lon=${lon}&peakpower=${peakPower}&loss=${systemLoss}&outputformat=json`;
-    const response = await fetch(pvgisUrl);
-    if (!response.ok) throw new Error(`PVGIS Hatası: ${response.statusText}`);
-    
-    const data = await response.json();
-    const yearlyProduction = data.outputs.totals.fixed.E_y;
-    return generateReport(yearlyProduction, installationCost, electricityPrice, false);
+    const [archiveRes, currentRes] = await Promise.all([fetch(archiveUrl), fetch(currentUrl)]);
+
+    let currentWeather = null;
+    if (currentRes.ok) {
+      const cur = await currentRes.json();
+      currentWeather = cur.current;
+    }
+
+    if (!archiveRes.ok) throw new Error('Archive API hatası');
+    const histData = await archiveRes.json();
+
+    const dailyRadiation  = histData.daily?.shortwave_radiation_sum ?? [];
+    const dailySunshine   = histData.daily?.sunshine_duration       ?? [];
+    const dailyTempMax    = histData.daily?.temperature_2m_max      ?? [];
+    const dailyTempMin    = histData.daily?.temperature_2m_min      ?? [];
+    const dailyWindMax    = histData.daily?.wind_speed_10m_max      ?? [];
+
+    const avgWindSpeed    = Math.round((avg(dailyWindMax) ?? 12) * 10) / 10; // km/h yıllık ort. maks.
+
+    const avgRadiation    = avg(dailyRadiation);   // kWh/m²/gün
+    const avgSunshineHrs  = (avg(dailySunshine) ?? 36000) / 3600;  // saat
+    const avgTempMax      = avg(dailyTempMax) ?? 28;
+    const avgTempMin      = avg(dailyTempMin) ?? 15;
+    const avgTemp         = (avgTempMax + avgTempMin) / 2;
+
+    // Güneşlenme süresinden bulutluluk tahmini
+    // Maksimum teorik güneşlenme ~12 saat/gün; az güneş = fazla bulut
+    const estimatedCloudCover = Math.max(0, Math.min(95, (1 - avgSunshineHrs / 12) * 100));
+
+    // Üretim standart sapması (yıllık risk göstergesi)
+    const radStdDev = stdDev(dailyRadiation);
+
+    // Yıllık enerji üretimi (kWh)
+    if (!avgRadiation) throw new Error('Radyasyon verisi yok');
+    const efficiencyFactor = (1 - systemLoss / 100) * 0.87;
+    yearlyProduction = peakPower * avgRadiation * 365 * efficiencyFactor;
+
+    // generateReport ile uyumlu meteoData yapısı
+    meteoData = {
+      current: {
+        temperature_2m: currentWeather?.temperature_2m ?? Math.round(avgTemp * 10) / 10,
+        cloud_cover:    currentWeather?.cloud_cover    ?? Math.round(estimatedCloudCover),
+        wind_speed_10m: currentWeather?.wind_speed_10m ?? avgWindSpeed
+      },
+      daily: {
+        sunshine_duration: [avgSunshineHrs * 3600]
+      },
+      yearly: {
+        avgTemp:         Math.round(avgTemp * 10) / 10,
+        avgSunshineHrs:  Math.round(avgSunshineHrs * 10) / 10,
+        avgCloudCover:   Math.round(estimatedCloudCover),
+        avgWindSpeed:    avgWindSpeed
+      }
+    };
+
+    // PVGIS benzeri risk verisi
+    const sdY = radStdDev * peakPower * 365 * efficiencyFactor;
+    pvgisData = {
+      SD_y: sdY,
+      l_tg: -(avgTemp > 25 ? 8.5 + (avgTemp - 25) * 0.3 : 7.5)  // sıcak bölgede daha yüksek termal kayıp
+    };
 
   } catch (error) {
-    console.warn("PVGIS API Hatası, Mock veri kullanılıyor...", error);
-    const mockYearlyProduction = peakPower * 1450; 
-    return generateReport(mockYearlyProduction, installationCost, electricityPrice, true);
+    console.warn('API Hatası, konum bazlı tahmin kullanılıyor:', error);
+    isMock = true;
+
+    // Enlem bazlı yedek tahmin (Güney Türkiye ~1800, Kuzey ~1300 kWh/kWp)
+    const latDiff = Math.abs(lat - 36);
+    const baseKwhKwp = Math.max(1300, 1800 - latDiff * 35);
+    yearlyProduction = peakPower * baseKwhKwp;
+
+    // Enlem bazlı iklim tahmini — rüzgar kuzey/yüksek enlemlerde genellikle daha güçlü
+    const estSunshine   = Math.max(6, 11 - latDiff * 0.3);
+    const estCloudCover = Math.min(70, 20 + latDiff * 4);
+    const estTemp       = Math.max(12, 25 - latDiff * 0.8);
+    const estWindSpeed  = Math.min(40, 10 + latDiff * 0.5); // kuzey = daha rüzgarlı
+
+    meteoData = {
+      current: { temperature_2m: estTemp, cloud_cover: estCloudCover, wind_speed_10m: estWindSpeed },
+      daily:   { sunshine_duration: [estSunshine * 3600] },
+      yearly:  { avgTemp: estTemp, avgSunshineHrs: estSunshine, avgCloudCover: estCloudCover, avgWindSpeed: estWindSpeed }
+    };
+
+    pvgisData = {
+      SD_y: yearlyProduction * 0.05,
+      l_tg: -(7.5 + Math.max(0, estTemp - 25) * 0.3)
+    };
   }
+
+  return generateReport(yearlyProduction, installationCost, electricityPrice, isMock, meteoData, pvgisData);
 }
 
-function generateReport(yearlyProduction, installationCost, electricityPrice, isMock) {
-  const yearlySavings = yearlyProduction * electricityPrice;
+function generateReport(yearlyProduction, installationCost, electricityPrice, isMock, meteoData, pvgisData) {
+  // Yıllık ortalamalar varsa onları kullan (daha anlamlı ve lokasyona özgü)
+  const cloudCover  = meteoData?.yearly?.avgCloudCover   ?? meteoData?.current?.cloud_cover    ?? 20;
+  const temperature = meteoData?.yearly?.avgTemp          ?? meteoData?.current?.temperature_2m ?? 25;
+  const windSpeed   = meteoData?.yearly?.avgWindSpeed     ?? meteoData?.current?.wind_speed_10m ?? 12;
+  const sunshineHrs = meteoData?.yearly?.avgSunshineHrs;
+  const sunshineSeconds = meteoData?.daily?.sunshine_duration?.[0] ?? 36000;
+  const sunshineHours   = sunshineHrs != null ? String(sunshineHrs) : (sunshineSeconds / 3600).toFixed(1);
+
+  // Sıcaklık ve bulutluluğa göre dinamik verim (Efficiency)
+  let tempPenalty  = temperature > 25 ? (temperature - 25) * 0.004 : 0; // 25°C üstü her derece çin %0.4 kayıp
+  let cloudPenalty = (cloudCover / 100) * 0.1;                           // max %10 üretim kaybı
+  // Rüzgar soğutma bonusu: panel sıcaklığını düşürerek verimliliği hafifçe artırır
+  // >20 km/h rüzgar → max %2 verim artışı (%0.1 / km/h)
+  let windBonus    = windSpeed > 10 ? Math.min(0.02, (windSpeed - 10) * 0.001) : 0;
+
+  const adjustedYearlyProduction = yearlyProduction * (1 - tempPenalty - cloudPenalty + windBonus);
+
+  const yearlySavings = adjustedYearlyProduction * electricityPrice;
   const roiYears = installationCost / yearlySavings;
-  const carbonOffsetTons = (yearlyProduction * 0.4) / 1000;
+  const carbonOffsetTons = (adjustedYearlyProduction * 0.4) / 1000;
+
+  const sdY = pvgisData?.SD_y ?? (yearlyProduction * 0.05);
+  const lTg = pvgisData?.l_tg ?? -8.0;
+
+  // 4 Katmanlı Risk Analizi — 0-25 puan aralığı, 5 seviyeli sınıflandırma
+
+  // 1. Üretim İstikrarsızlığı — Yıllık ortalama bulutluluktan türetiliyor
+  //    Antalya %22 bulut → ~7     Rize %63 → ~15     Antarktika %90 → ~20
+  let productionRisk = 2 + (cloudCover * 0.22);
+  productionRisk = Math.min(25, Math.max(2, productionRisk));
+
+  // 2. Termal Kayıp Riski — Yıllık ortalama sıcaklıktan türetiliyor
+  //    Şanlıurfa 33°C → ~18     Antalya 19°C → ~9     Antarktika -30°C → ~7
+  let thermalRisk = Math.abs(lTg);
+  if (temperature > 35) thermalRisk += 8;
+  else if (temperature > 30) thermalRisk += 5;
+  else if (temperature > 25) thermalRisk += 2;
+  else if (temperature < 5)  thermalRisk -= 1;
+  // Güçlü rüzgar paneli soğutarak termal riski hafifletir (>15 km/h → max -2 puan)
+  const windCoolingReduction = windSpeed > 15 ? Math.min(2, (windSpeed - 15) * 0.08) : 0;
+  thermalRisk = Math.min(25, Math.max(5, thermalRisk - windCoolingReduction));
+
+  // 3. Meteorolojik Sapma — Bulutluluk + Güneşlenme eksikliği + Rüzgar yapısal riski
+  //    >20 km/h rüzgar: panel ve montaj sistemine mekanik stres → risk artar
+  const sunshineFactor = sunshineHours
+    ? Math.max(0, (12 - parseFloat(sunshineHours)) / 12)
+    : 0.5;
+  // Rüzgar yapısal riski: 20 km/h altında etkisiz, üstte her km/h +0.1 risk puanı (max +5)
+  const windStructuralRisk = windSpeed > 20 ? Math.min(5, (windSpeed - 20) * 0.1) : 0;
+  let meteorologicalRisk = 3 + (cloudCover * 0.14) + (sunshineFactor * 14) + windStructuralRisk;
+  meteorologicalRisk = Math.min(25, Math.max(3, meteorologicalRisk));
+
+  // 4. Finansal Dalgalanma — ROI yılına bağlı
+  //    3 yıl → ~7     5 yıl → ~9.5     8 yıl → ~12.5     15+ yıl → ~20
+  let financialRisk = 4 + Math.min(16, roiYears * 1.1);
+  financialRisk = Math.min(25, Math.max(4, financialRisk));
+
+  const avgRisk = (productionRisk + thermalRisk + meteorologicalRisk + financialRisk) / 4;
+
+  // 5 Seviyeli Risk Sınıflandırması
+  // Antalya   → ~8.5  → Düşük
+  // Rize      → ~14   → Yüksek
+  // Antarktika→ ~19   → Çok Yüksek
+  // Sahara    → ~8    → Düşük (güneşli ama sıcak, dengeli)
+  let totalRiskLevel = "Çok Düşük";
+  if (avgRisk > 6  && avgRisk <= 9)  totalRiskLevel = "Düşük";
+  if (avgRisk > 9  && avgRisk <= 13) totalRiskLevel = "Orta";
+  if (avgRisk > 13 && avgRisk <= 17) totalRiskLevel = "Yüksek";
+  if (avgRisk > 17)                  totalRiskLevel = "Çok Yüksek";
 
   const cashFlowData = [];
   let cumulative = -installationCost;
@@ -43,7 +212,7 @@ function generateReport(yearlyProduction, installationCost, electricityPrice, is
     } else {
       const degradation = Math.pow(0.995, i);
       const priceIncrease = Math.pow(1.03, i);
-      const currentYearSaving = yearlyProduction * degradation * (electricityPrice * priceIncrease);
+      const currentYearSaving = adjustedYearlyProduction * degradation * (electricityPrice * priceIncrease);
       cumulative += currentYearSaving;
       cashFlowData.push({ year: `Yıl ${i}`, nakitAkisi: Math.round(cumulative) });
     }
@@ -52,17 +221,25 @@ function generateReport(yearlyProduction, installationCost, electricityPrice, is
   return {
     success: true,
     isMock,
+    meteo: {
+      cloudCover:    Math.round(cloudCover),
+      temperature:   Math.round(temperature * 10) / 10,
+      windSpeed:     Math.round(windSpeed * 10) / 10,
+      sunshineHours: parseFloat(parseFloat(sunshineHours).toFixed(1))
+    },
     data: {
-      yearlyProductionKwh: Number(yearlyProduction.toFixed(2)),
-      yearlySavingsUsd: Number(yearlySavings.toFixed(2)),
-      roiYears: Number(roiYears.toFixed(1)),
-      carbonOffsetTons: Number(carbonOffsetTons.toFixed(2)),
-      totalProfit25Y: cashFlowData[25].nakitAkisi,
+      yearlyProductionKwh: Math.round(adjustedYearlyProduction),
+      yearlySavingsUsd:    Math.round(yearlySavings),
+      roiYears:            Number(roiYears.toFixed(1)),
+      carbonOffsetTons:    Number(carbonOffsetTons.toFixed(1)),
+      totalProfit25Y:      cashFlowData[25].nakitAkisi,
       cashFlowData,
       riskScores: {
-        meteorological: 12.5,
-        financial: 8.0,
-        totalRiskLevel: "Düşük"
+        production:      Number(productionRisk.toFixed(1)),
+        thermal:         Number(thermalRisk.toFixed(1)),
+        meteorological:  Number(meteorologicalRisk.toFixed(1)),
+        financial:       Number(financialRisk.toFixed(1)),
+        totalRiskLevel
       }
     }
   };
@@ -108,6 +285,8 @@ function AnalysisPage() {
         image: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&q=80&w=600',
         featured: false,
         type: 'solar',
+        riskScores: result.data.riskScores,
+        meteo: result.meteo,
         feasibility: {
           status: 'Yeni Oluşturuldu',
           ced: 'Değerlendirmede',
@@ -376,11 +555,11 @@ function AnalysisPage() {
             </h3>
             {result.isMock ? (
               <span className="bg-yellow-500/10 text-yellow-400 px-4 py-2 rounded-full border border-yellow-500/30 font-bold text-sm mt-4 md:mt-0 flex items-center shadow-[0_0_15px_rgba(234,179,8,0.2)]">
-                Çevrimdışı Simülasyon <AlertTriangle className="w-4 h-4 ml-2" />
+                Konum Bazlı Tahmin <AlertTriangle className="w-4 h-4 ml-2" />
               </span>
             ) : (
-              <span className="bg-brand-blue/10 text-brand-blue px-4 py-2 rounded-full border border-brand-blue/30 font-bold text-sm mt-4 md:mt-0 flex items-center shadow-[0_0_15px_rgba(59,130,246,0.2)]">
-                PVGIS Doğrulandı <CheckCircle className="w-4 h-4 ml-2" />
+              <span className="bg-sun-green/10 text-sun-green px-4 py-2 rounded-full border border-sun-green/30 font-bold text-sm mt-4 md:mt-0 flex items-center shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                Open-Meteo Canlı Veri <CheckCircle className="w-4 h-4 ml-2" />
               </span>
             )}
           </div>
@@ -461,6 +640,32 @@ function AnalysisPage() {
             </div>
 
             <div className="flex flex-col gap-6">
+               {/* Meteo Data API Results */}
+               {result.meteo && (
+                 <div className="grid grid-cols-2 gap-4">
+                   <div className="bg-white/[0.02] border border-white/5 p-4 rounded-3xl flex flex-col items-center justify-center text-center group hover:bg-white/[0.04] transition-all">
+                     <Sun className="w-6 h-6 text-yellow-400 mb-2" />
+                     <div className="text-xl font-bold text-white">{result.meteo.temperature}°C</div>
+                     <div className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Yıllık Ort. Sıcaklık</div>
+                   </div>
+                   <div className="bg-white/[0.02] border border-white/5 p-4 rounded-3xl flex flex-col items-center justify-center text-center group hover:bg-white/[0.04] transition-all">
+                     <Cloud className="w-6 h-6 text-gray-400 mb-2" />
+                     <div className="text-xl font-bold text-white">%{result.meteo.cloudCover}</div>
+                     <div className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Yıllık Ort. Bulutluluk</div>
+                   </div>
+                   <div className="bg-white/[0.02] border border-white/5 p-4 rounded-3xl flex flex-col items-center justify-center text-center group hover:bg-white/[0.04] transition-all">
+                     <Wind className="w-6 h-6 text-blue-400 mb-2" />
+                     <div className="text-xl font-bold text-white">{result.meteo.windSpeed} km/s</div>
+                     <div className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Anlık Rüzgar</div>
+                   </div>
+                   <div className="bg-white/[0.02] border border-white/5 p-4 rounded-3xl flex flex-col items-center justify-center text-center group hover:bg-white/[0.04] transition-all">
+                     <Clock className="w-6 h-6 text-orange-400 mb-2" />
+                     <div className="text-xl font-bold text-white">{result.meteo.sunshineHours}s</div>
+                     <div className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Yıllık Ort. Güneşlenme</div>
+                   </div>
+                 </div>
+               )}
+
                <div className="bg-brand-blue/10 border border-brand-blue/20 p-8 rounded-3xl flex-1 flex flex-col justify-center relative overflow-hidden group">
                  <div className="absolute top-0 right-0 w-32 h-32 bg-brand-blue/20 blur-[50px] group-hover:bg-brand-blue/40 transition-colors duration-700"></div>
                  <h4 className="text-gray-400 text-xs uppercase font-bold tracking-wider mb-2 relative z-10">25 Yıl Sonunda Toplam Net Kâr</h4>
@@ -475,18 +680,46 @@ function AnalysisPage() {
                <div className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl">
                  <div className="flex justify-between items-center mb-6">
                    <h4 className="text-white font-bold text-lg">Risk Seviyesi</h4>
-                   <span className="bg-sun-green/10 text-sun-green px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest border border-sun-green/20">
+                   <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest border ${
+                      result.data.riskScores.totalRiskLevel === 'Çok Düşük' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                      result.data.riskScores.totalRiskLevel === 'Düşük'     ? 'bg-sun-green/10 text-sun-green border-sun-green/20' :
+                      result.data.riskScores.totalRiskLevel === 'Orta'      ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
+                      result.data.riskScores.totalRiskLevel === 'Yüksek'    ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
+                      'bg-red-500/10 text-red-400 border-red-500/20'
+                    }`}>
                      {result.data.riskScores.totalRiskLevel}
                    </span>
                  </div>
-                 <div className="space-y-5">
+                 <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-xs font-bold uppercase tracking-wider mb-2">
+                        <span className="text-gray-500">Üretim İstikrarsızlığı</span>
+                        <span className="text-white">%{result.data.riskScores.production}</span>
+                      </div>
+                      <div className="h-2 bg-black rounded-full overflow-hidden border border-white/5">
+                        <div className="h-full bg-purple-500 relative transition-all duration-1000" style={{ width: `${result.data.riskScores.production}%` }}>
+                          <div className="absolute inset-0 bg-white/20 w-full animate-[pulse_2s_ease-in-out_infinite]"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-xs font-bold uppercase tracking-wider mb-2">
+                        <span className="text-gray-500">Termal Kayıp Riski</span>
+                        <span className="text-white">%{result.data.riskScores.thermal}</span>
+                      </div>
+                      <div className="h-2 bg-black rounded-full overflow-hidden border border-white/5">
+                        <div className="h-full bg-red-500 relative transition-all duration-1000" style={{ width: `${result.data.riskScores.thermal}%` }}>
+                          <div className="absolute inset-0 bg-white/20 w-full animate-[pulse_2s_ease-in-out_infinite]"></div>
+                        </div>
+                      </div>
+                    </div>
                    <div>
                      <div className="flex justify-between text-xs font-bold uppercase tracking-wider mb-2">
                        <span className="text-gray-500">Meteorolojik Sapma</span>
-                       <span className="text-white">%12.5</span>
+                       <span className="text-white">%{result.data.riskScores.meteorological}</span>
                      </div>
                      <div className="h-2 bg-black rounded-full overflow-hidden border border-white/5">
-                       <div className="h-full bg-brand-blue w-[12.5%] relative">
+                       <div className="h-full bg-brand-blue relative transition-all duration-1000" style={{ width: `${result.data.riskScores.meteorological}%` }}>
                          <div className="absolute inset-0 bg-white/20 w-full animate-[pulse_2s_ease-in-out_infinite]"></div>
                        </div>
                      </div>
@@ -494,10 +727,10 @@ function AnalysisPage() {
                    <div>
                      <div className="flex justify-between text-xs font-bold uppercase tracking-wider mb-2">
                        <span className="text-gray-500">Finansal Dalgalanma</span>
-                       <span className="text-white">%8.0</span>
+                       <span className="text-white">%{result.data.riskScores.financial}</span>
                      </div>
                      <div className="h-2 bg-black rounded-full overflow-hidden border border-white/5">
-                       <div className="h-full bg-sun-green w-[8%] relative">
+                       <div className="h-full bg-sun-green relative transition-all duration-1000" style={{ width: `${result.data.riskScores.financial}%` }}>
                          <div className="absolute inset-0 bg-white/20 w-full animate-[pulse_2s_ease-in-out_infinite]"></div>
                        </div>
                      </div>
