@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Target, TrendingUp, Users, Activity, Plus, ArrowRight, Info, MapPin, CheckCircle, FileText, X } from 'lucide-react';
+import { Target, TrendingUp, Users, Activity, Plus, ArrowRight, Info, MapPin, CheckCircle, FileText, X, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const UnitTooltip = ({ unit, description }) => (
@@ -143,6 +143,19 @@ const StatCard = ({ title, value, icon: Icon, subtitle, colorClass, tooltip }) =
 
 function OwnerDashboardPage() {
   const [selectedProject, setSelectedProject] = useState(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownloadPDF = () => {
+    setIsDownloading(true);
+    setTimeout(() => {
+      setIsDownloading(false);
+      // Simüle edilmiş dosya indirme tetikleyicisi
+      const link = document.createElement('a');
+      link.href = 'data:application/pdf;base64,JVBERi0xLg=='; // Boş PDF base64
+      link.download = `${selectedProject?.title?.replace(/\s+/g, '_')}_Fizibilite.pdf`;
+      link.click();
+    }, 1500);
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
@@ -352,6 +365,22 @@ function OwnerDashboardPage() {
                   <span className="block text-gray-400 text-sm">Hedeflenen Tutar</span>
                   <span className="text-xl font-bold text-white">{selectedProject.target}</span>
                 </div>
+              </div>
+
+              {/* PDF Download Button */}
+              <div className="mt-6 flex justify-end border-t border-white/10 pt-6">
+                <button 
+                  onClick={handleDownloadPDF}
+                  disabled={isDownloading}
+                  className="px-6 py-3 bg-white text-black font-extrabold rounded-xl hover:bg-gray-200 transition-all duration-300 disabled:opacity-50 flex items-center shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] hover:scale-105 active:scale-95"
+                >
+                  {isDownloading ? (
+                    <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></div>
+                  ) : (
+                    <Download className="w-5 h-5 mr-2" />
+                  )}
+                  {isDownloading ? 'PDF Hazırlanıyor...' : 'Raporu PDF Olarak İndir'}
+                </button>
               </div>
               
             </div>
