@@ -3,6 +3,7 @@ import { MapPin, Calculator, AlertTriangle, CheckCircle, Zap, DollarSign, Trendi
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import L from 'leaflet';
+import html2pdf from 'html2pdf.js';
 
 // Fix for default marker icons in react-leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -326,14 +327,54 @@ function AnalysisPage() {
 
   const handleDownloadPDF = () => {
     setIsDownloading(true);
-    setTimeout(() => {
+    
+    const reportHtml = `
+      <div style="font-family: Arial, sans-serif; color: #000; padding: 40px; line-height: 1.6; background: white;">
+        <h1 style="text-align: center; color: #10b981; border-bottom: 2px solid #10b981; padding-bottom: 10px;">SUNSHARE - NİHAİ FİZİBİLİTE RAPORU</h1>
+        <p style="text-align: right; color: #555;"><strong>Tarih:</strong> ${new Date().toLocaleDateString('tr-TR')}</p>
+        
+        <h3 style="color: #3b82f6; margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">1. Proje Özeti</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; width: 40%; background: #f9f9f9;">Proje Lokasyonu</td><td style="padding: 10px; border: 1px solid #eee;">${addressName}</td></tr>
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; background: #f9f9f9;">Yatırım Tipi</td><td style="padding: 10px; border: 1px solid #eee;">${form.investmentType.toUpperCase()} GES</td></tr>
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; background: #f9f9f9;">Kullanılacak Alan</td><td style="padding: 10px; border: 1px solid #eee;">${form.area} m²</td></tr>
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; background: #f9f9f9;">Kurulu Güç (Kapasite)</td><td style="padding: 10px; border: 1px solid #eee;">${form.capacity} kWp</td></tr>
+        </table>
+
+        <h3 style="color: #3b82f6; margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">2. Finansal ve Teknik Analiz</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; width: 40%; background: #f9f9f9;">Yıllık Enerji Üretimi</td><td style="padding: 10px; border: 1px solid #eee;">${result?.data?.yearlyProductionKwh.toLocaleString()} kWh</td></tr>
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; background: #f9f9f9;">Yıllık Finansal Tasarruf</td><td style="padding: 10px; border: 1px solid #eee;">$${result?.data?.yearlySavingsUsd.toLocaleString()}</td></tr>
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; background: #f9f9f9;">Amortisman Süresi (ROI)</td><td style="padding: 10px; border: 1px solid #eee;">${result?.data?.roiYears} Yıl</td></tr>
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; background: #f9f9f9;">25 Yıllık Net Kâr Projeksiyonu</td><td style="padding: 10px; border: 1px solid #eee;">$${result?.data?.totalProfit25Y.toLocaleString()}</td></tr>
+        </table>
+
+        <h3 style="color: #3b82f6; margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">3. Çevresel Etki ve Risk Durumu</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; width: 40%; background: #f9f9f9;">Yıllık CO2 Tasarrufu</td><td style="padding: 10px; border: 1px solid #eee;">${result?.data?.carbonOffsetTons} Ton</td></tr>
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; background: #f9f9f9;">Genel Risk Seviyesi</td><td style="padding: 10px; border: 1px solid #eee;">${result?.data?.riskScores.totalRiskLevel}</td></tr>
+        </table>
+
+        <p style="margin-top: 40px; font-size: 11px; color: #888; border-top: 1px solid #ddd; padding-top: 10px; text-align: justify;">
+          Bu belge SunShare algoritmaları ve açık kaynak iklim verileri kullanılarak otomatik üretilmiştir. Resmi ve kesin bağlayıcılığı bulunmamakla birlikte, yatırım kararları için bilimsel bir ön değerlendirme niteliği taşır. Gerçek değerler, sistem kayıpları ve piyasa koşullarına göre değişiklik gösterebilir.
+        </p>
+      </div>
+    `;
+
+    const opt = {
+      margin:       10,
+      filename:     `Yeni_Proje_Nihai_Fizibilite.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    const tempElement = document.createElement('div');
+    tempElement.innerHTML = reportHtml;
+    
+    html2pdf().from(tempElement).set(opt).save().then(() => {
       setIsDownloading(false);
-      const validPdfBase64 = 'JVBERi0xLjQKJcOkw7zDtsOfCjIgMCBvYmoKPDwvTGVuZ3RoIDMgMCBSPj4Kc3RyZWFtCmcKZW5kc3RyZWFtCmVuZG9iagozIDAgb2JqCjEKZW5kb2JqCjQgMCBvYmoKPDwvVHlwZSAvUGFnZQovUGFyZW50IDEgMCBSCi9SZXNvdXJjZXMgPDwvRm9udCA8PC9GMSA1IDAgUj4+Pj4KL0NvbnRlbnRzIDIgMCBSCj4+CmVuZG9iago1IDAgb2JqCjw8L1R5cGUgL0ZvbnQKL1N1YnR5cGUgL1R5cGUxCi9CYXNlRm9udCAvVGltZXMtUm9tYW4KPj4KZW5kb2JqCjEgMCBvYmoKPDwvVHlwZSAvUGFnZXMKL0tpZHMgWzQgMCBSXQovQ291bnQgMQovTWVkaWFCb3ggWzAgMCA1OTUgODQyXQo+PgplbmRvYmoKNiAwIG9iago8PC9UeXBlIC9DYXRhbG9nCi9QYWdlcyAxIDAgUgo+PgplbmRvYmoKeHJlZgowIDcKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMjM0IDAwMDAwIG4gCjAwMDAwMDAwMTkgMDAwMDAgbiAKMDAwMDAwMDA1OSAwMDAwMCBuIAowMDAwMDAwMDc4IDAwMDAwIG4gCjAwMDAwMDAxNzQgMDAwMDAgbiAKMDAwMDAwMDI5MyAwMDAwMCBuIAp0cmFpbGVyCjw8L1NpemUgNwovUm9vdCA2IDAgUgo+PgpzdGFydHhyZWYKMzQzCiUlRU9GCg==';
-      const link = document.createElement('a');
-      link.href = 'data:application/pdf;base64,' + validPdfBase64;
-      link.download = `Yeni_Proje_Nihai_Fizibilite.pdf`;
-      link.click();
-    }, 1500);
+    });
   };
   
   const [position, setPosition] = useState({ lat: 38.4237, lng: 27.1428 });
@@ -697,7 +738,7 @@ function AnalysisPage() {
                 </ResponsiveContainer>
               </div>
               
-              <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-start">
+              <div id="pdf-action-buttons" className="mt-8 flex flex-col sm:flex-row gap-4 justify-start">
                 <button 
                   onClick={handleDownloadPDF}
                   disabled={isDownloading || isPublishing}

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Target, TrendingUp, Users, Activity, Plus, ArrowRight, Info, MapPin, CheckCircle, FileText, X, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import html2pdf from 'html2pdf.js';
+import { useRef } from 'react';
 
 const UnitTooltip = ({ unit, description }) => (
   <span className="relative group/unit inline-flex items-center ml-1 cursor-help border-b border-dashed border-gray-500 z-20">
@@ -144,18 +146,64 @@ const StatCard = ({ title, value, icon: Icon, subtitle, colorClass, tooltip }) =
 function OwnerDashboardPage() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const modalRef = useRef(null);
 
   const handleDownloadPDF = () => {
     setIsDownloading(true);
-    setTimeout(() => {
+    
+    const reportHtml = `
+      <div style="font-family: Arial, sans-serif; color: #000; padding: 40px; line-height: 1.6; background: white;">
+        <h1 style="text-align: center; color: #10b981; border-bottom: 2px solid #10b981; padding-bottom: 10px;">SUNSHARE - NİHAİ FİZİBİLİTE RAPORU</h1>
+        <p style="text-align: right; color: #555;"><strong>Tarih:</strong> ${new Date().toLocaleDateString('tr-TR')}</p>
+        
+        <h3 style="color: #3b82f6; margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">1. Proje Özeti</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; width: 40%; background: #f9f9f9;">Proje Adı</td><td style="padding: 10px; border: 1px solid #eee;">${selectedProject?.title}</td></tr>
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; background: #f9f9f9;">Lokasyon</td><td style="padding: 10px; border: 1px solid #eee;">${selectedProject?.location}</td></tr>
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; background: #f9f9f9;">Kurulu Kapasite</td><td style="padding: 10px; border: 1px solid #eee;">${selectedProject?.capacity}</td></tr>
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; background: #f9f9f9;">Finansal Durum</td><td style="padding: 10px; border: 1px solid #eee;">${selectedProject?.status}</td></tr>
+        </table>
+
+        <h3 style="color: #3b82f6; margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">2. Finansal ve Teknik Analiz</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; width: 40%; background: #f9f9f9;">Yıllık Enerji Üretimi</td><td style="padding: 10px; border: 1px solid #eee;">${selectedProject?.feasibility?.annualProduction}</td></tr>
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; background: #f9f9f9;">Hedeflenen Yatırım (Toplam)</td><td style="padding: 10px; border: 1px solid #eee;">${selectedProject?.target}</td></tr>
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; background: #f9f9f9;">Tahmini Amortisman (ROI)</td><td style="padding: 10px; border: 1px solid #eee;">${selectedProject?.roi}</td></tr>
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; background: #f9f9f9;">CO2 Emisyon Tasarrufu</td><td style="padding: 10px; border: 1px solid #eee;">${selectedProject?.feasibility?.co2Reduction}</td></tr>
+        </table>
+
+        <h3 style="color: #3b82f6; margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">3. İzinler ve Teknik Durum</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; width: 40%; background: #f9f9f9;">Genel Süreç Durumu</td><td style="padding: 10px; border: 1px solid #eee;">${selectedProject?.feasibility?.status}</td></tr>
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; background: #f9f9f9;">ÇED Kararı</td><td style="padding: 10px; border: 1px solid #eee;">${selectedProject?.feasibility?.ced}</td></tr>
+          <tr><td style="padding: 10px; border: 1px solid #eee; font-weight: bold; background: #f9f9f9;">Şebeke Bağlantısı</td><td style="padding: 10px; border: 1px solid #eee;">${selectedProject?.feasibility?.gridConnection}</td></tr>
+        </table>
+        
+        <div style="padding: 20px; border: 1px solid #eee; background-color: #f9f9f9; border-radius: 8px;">
+          <strong style="color: #333;">Proje Teknik Açıklaması:</strong><br/>
+          <p style="margin-top: 10px; font-size: 14px; text-align: justify; color: #555;">${selectedProject?.feasibility?.description}</p>
+        </div>
+
+        <p style="margin-top: 40px; font-size: 11px; color: #888; border-top: 1px solid #ddd; padding-top: 10px; text-align: justify;">
+          Bu belge SunShare platformu tarafından üretilmiş resmi bir bilgilendirme raporudur. Proje detayları ve finansal beklentiler tamamen tahmin ve proje dokümanlarına dayanmaktadır.
+        </p>
+      </div>
+    `;
+
+    const opt = {
+      margin:       10,
+      filename:     `${selectedProject?.title?.replace(/\s+/g, '_')}_Fizibilite.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    const tempElement = document.createElement('div');
+    tempElement.innerHTML = reportHtml;
+    
+    html2pdf().from(tempElement).set(opt).save().then(() => {
       setIsDownloading(false);
-      // Geçerli bir boş PDF (A4 boyutunda) base64 stringi
-      const validPdfBase64 = 'JVBERi0xLjQKJcOkw7zDtsOfCjIgMCBvYmoKPDwvTGVuZ3RoIDMgMCBSPj4Kc3RyZWFtCmcKZW5kc3RyZWFtCmVuZG9iagozIDAgb2JqCjEKZW5kb2JqCjQgMCBvYmoKPDwvVHlwZSAvUGFnZQovUGFyZW50IDEgMCBSCi9SZXNvdXJjZXMgPDwvRm9udCA8PC9GMSA1IDAgUj4+Pj4KL0NvbnRlbnRzIDIgMCBSCj4+CmVuZG9iago1IDAgb2JqCjw8L1R5cGUgL0ZvbnQKL1N1YnR5cGUgL1R5cGUxCi9CYXNlRm9udCAvVGltZXMtUm9tYW4KPj4KZW5kb2JqCjEgMCBvYmoKPDwvVHlwZSAvUGFnZXMKL0tpZHMgWzQgMCBSXQovQ291bnQgMQovTWVkaWFCb3ggWzAgMCA1OTUgODQyXQo+PgplbmRvYmoKNiAwIG9iago8PC9UeXBlIC9DYXRhbG9nCi9QYWdlcyAxIDAgUgo+PgplbmRvYmoKeHJlZgowIDcKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMjM0IDAwMDAwIG4gCjAwMDAwMDAwMTkgMDAwMDAgbiAKMDAwMDAwMDA1OSAwMDAwMCBuIAowMDAwMDAwMDc4IDAwMDAwIG4gCjAwMDAwMDAxNzQgMDAwMDAgbiAKMDAwMDAwMDI5MyAwMDAwMCBuIAp0cmFpbGVyCjw8L1NpemUgNwovUm9vdCA2IDAgUgo+PgpzdGFydHhyZWYKMzQzCiUlRU9GCg==';
-      const link = document.createElement('a');
-      link.href = 'data:application/pdf;base64,' + validPdfBase64;
-      link.download = `${selectedProject?.title?.replace(/\s+/g, '_')}_Fizibilite.pdf`;
-      link.click();
-    }, 1500);
+    });
   };
 
   return (
@@ -257,13 +305,14 @@ function OwnerDashboardPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setSelectedProject(null)}></div>
           
-          <div className="glass-panel w-full max-w-4xl bg-[#0a0a0a] border border-white/20 rounded-3xl shadow-2xl relative z-10 animate-in zoom-in-95 duration-300 overflow-hidden flex flex-col max-h-full">
+          <div ref={modalRef} className="glass-panel w-full max-w-4xl bg-[#0a0a0a] border border-white/20 rounded-3xl shadow-2xl relative z-10 animate-in zoom-in-95 duration-300 overflow-hidden flex flex-col max-h-full">
             {/* Modal Header Image */}
             <div className="h-48 sm:h-64 relative flex-shrink-0">
               <img src={selectedProject.image} alt={selectedProject.title} className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-black/40 to-transparent"></div>
               
               <button 
+                id="modal-close-btn"
                 onClick={() => setSelectedProject(null)} 
                 className="absolute top-4 right-4 bg-black/50 backdrop-blur-md border border-white/20 p-2 rounded-full text-white hover:bg-white/20 transition-all z-20"
               >
@@ -369,7 +418,7 @@ function OwnerDashboardPage() {
               </div>
 
               {/* PDF Download Button */}
-              <div className="mt-6 flex justify-end border-t border-white/10 pt-6">
+              <div id="modal-download-btn" className="mt-6 flex justify-end border-t border-white/10 pt-6">
                 <button 
                   onClick={handleDownloadPDF}
                   disabled={isDownloading}
