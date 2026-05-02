@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { MapPin, Calculator, AlertTriangle, CheckCircle, Zap, DollarSign, TrendingUp, Leaf, AlertCircle } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import L from 'leaflet';
 
 // Fix for default marker icons in react-leaflet
@@ -86,6 +86,7 @@ function AnalysisPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const resultsRef = useRef(null);
   
   const [position, setPosition] = useState({ lat: 38.4237, lng: 27.1428 });
   const [form, setForm] = useState({
@@ -112,6 +113,9 @@ function AnalysisPage() {
       const res = await calculateSolarROI(position.lat, position.lng, form.capacity, 14, calculatedCost, electricityPrice);
       if (res.success) {
         setResult(res);
+        setTimeout(() => {
+          resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
       } else {
         setError(res.error);
       }
@@ -274,7 +278,7 @@ function AnalysisPage() {
 
       {/* Full Width Results Dashboard */}
       {result && result.success && (
-        <div className="glass-panel p-8 md:p-10 rounded-3xl animate-in fade-in slide-in-from-bottom-10 duration-700 mb-12">
+        <div ref={resultsRef} className="glass-panel p-8 md:p-10 rounded-3xl animate-in fade-in slide-in-from-bottom-10 duration-700 mb-12">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 pb-6 border-b border-white/10">
             <h3 className="text-3xl font-bold text-white flex items-center">
               <span className="p-3 bg-brand-blue/10 rounded-2xl mr-4 border border-brand-blue/30">
@@ -312,8 +316,8 @@ function AnalysisPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
               <h4 className="text-xl font-bold text-white mb-6 flex items-center">
-                <TrendingUp className="w-5 h-5 mr-2 text-gray-400" />
-                25 Yıllık Nakit Akışı Projeksiyonu
+                <TrendingUp className="w-5 h-5 mr-2 text-sun-green" />
+                Yatırımın Kendini Amorti Etme ve Kâra Geçiş Süreci
               </h4>
               <div className="h-80 w-full bg-black/20 rounded-3xl p-4 border border-white/5">
                 <ResponsiveContainer width="100%" height="100%">
@@ -326,13 +330,14 @@ function AnalysisPage() {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" vertical={false} />
                     <XAxis dataKey="year" stroke="#6b7280" tick={{fill: '#6b7280', fontSize: 12}} axisLine={false} tickLine={false} tickMargin={10} minTickGap={30} />
-                    <YAxis stroke="#6b7280" tick={{fill: '#6b7280', fontSize: 12}} axisLine={false} tickLine={false} tickFormatter={(val) => `$${(val/1000).toFixed(0)}k`} />
+                    <YAxis stroke="#6b7280" tick={{fill: '#6b7280', fontSize: 12}} axisLine={false} tickLine={false} tickFormatter={(val) => val < 0 ? `-$${Math.abs(val/1000).toFixed(0)}k` : `$${(val/1000).toFixed(0)}k`} />
                     <RechartsTooltip 
                       contentStyle={{ backgroundColor: 'rgba(5,5,5,0.8)', backdropFilter: 'blur(12px)', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', padding: '16px' }}
                       itemStyle={{ color: '#3b82f6', fontWeight: '900', fontSize: '18px' }}
                       labelStyle={{ color: '#9ca3af', marginBottom: '8px', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}
-                      formatter={(value) => [`$${value.toLocaleString()}`, "Kümülatif Getiri"]}
+                      formatter={(value) => [value < 0 ? `-$${Math.abs(value).toLocaleString()}` : `$${value.toLocaleString()}`, "Net Kazanç Durumu"]}
                     />
+                    <ReferenceLine y={0} stroke="#10b981" strokeWidth={2} strokeDasharray="5 5" label={{ position: 'insideTopLeft', value: 'AMORTİSMAN NOKTASI (Maliyetin Çıkarıldığı An)', fill: '#10b981', fontSize: 11, fontWeight: 'bold' }} />
                     <Area type="monotone" dataKey="nakitAkisi" stroke="#3b82f6" strokeWidth={4} fillOpacity={1} fill="url(#colorNakit)" />
                   </AreaChart>
                 </ResponsiveContainer>
