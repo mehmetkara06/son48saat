@@ -1,23 +1,61 @@
 import React, { useState } from 'react';
 import { Sun, Wallet, HardHat, ArrowRight, Info, Zap, Shield, BarChart3, Globe, LineChart, X } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
-function LoginPage({ onLogin }) {
+function LoginPage() {
   const [investorForm, setInvestorForm] = useState(null); // 'login' | 'signup' | null
   const [ownerForm, setOwnerForm] = useState(null);       // 'login' | 'signup' | null
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const resetFields = () => {
+    setEmail('');
+    setPassword('');
+    setFullName('');
+    setErrorMsg('');
+  };
 
   const handleInvestorAction = (action) => {
+    resetFields();
     setInvestorForm(action);
     if (action) setOwnerForm(null);
   };
 
   const handleOwnerAction = (action) => {
+    resetFields();
     setOwnerForm(action);
     if (action) setInvestorForm(null);
   };
 
-  const preventSubmit = (e, role) => {
+  const handleSubmit = async (e, role) => {
     e.preventDefault();
-    onLogin(role);
+    setErrorMsg('');
+    setLoading(true);
+
+    const activeForm = role === 'investor' ? investorForm : ownerForm;
+
+    try {
+      if (activeForm === 'signup') {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { role, full_name: fullName }
+          }
+        });
+        if (error) setErrorMsg(error.message);
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) setErrorMsg('Giriş başarısız. Lütfen bilgilerinizi kontrol edin.');
+      }
+    } catch (err) {
+      setErrorMsg('Bir hata oluştu. Lütfen tekrar deneyin.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const isAnyFormActive = investorForm || ownerForm;
@@ -96,19 +134,21 @@ function LoginPage({ onLogin }) {
 
               {/* Form Section (Expands when active) */}
               <div className={`transition-all duration-700 ease-in-out overflow-hidden transform origin-top ${investorForm ? 'max-h-[500px] opacity-100 mt-4 translate-y-0 scale-100' : 'max-h-0 opacity-0 mt-0 -translate-y-4 scale-95'}`}>
-                <form onSubmit={(e) => preventSubmit(e, 'investor')} className="flex flex-col gap-4 relative z-10">
+                <form onSubmit={(e) => handleSubmit(e, 'investor')} className="flex flex-col gap-4 relative z-10">
                   <h3 className="text-white font-medium mb-1">{investorForm === 'login' ? 'Yatırımcı Girişi' : 'Yatırımcı Hesabı Oluştur'}</h3>
                   
+                  {errorMsg && <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-lg">{errorMsg}</div>}
+
                   <div className={`transition-all duration-700 ease-in-out overflow-hidden transform origin-top ${investorForm === 'signup' ? 'max-h-[100px] opacity-100 translate-y-0 scale-100' : 'max-h-0 opacity-0 -translate-y-4 scale-95'}`}>
-                    <input required={investorForm === 'signup'} type="text" placeholder="Ad Soyad" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-sun-green/50 focus:ring-1 focus:ring-sun-green/50 transition-all placeholder:text-gray-500" />
+                    <input required={investorForm === 'signup'} value={fullName} onChange={e => setFullName(e.target.value)} type="text" placeholder="Ad Soyad" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-sun-green/50 focus:ring-1 focus:ring-sun-green/50 transition-all placeholder:text-gray-500" />
                   </div>
                   
-                  <input required type="email" placeholder="E-posta Adresi" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-sun-green/50 focus:ring-1 focus:ring-sun-green/50 transition-all placeholder:text-gray-500" />
-                  <input required type="password" placeholder="Şifre" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-sun-green/50 focus:ring-1 focus:ring-sun-green/50 transition-all placeholder:text-gray-500" />
+                  <input required value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="E-posta Adresi" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-sun-green/50 focus:ring-1 focus:ring-sun-green/50 transition-all placeholder:text-gray-500" />
+                  <input required value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="Şifre" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-sun-green/50 focus:ring-1 focus:ring-sun-green/50 transition-all placeholder:text-gray-500" />
                   
                   <div className="flex gap-3 mt-2">
-                    <button type="submit" className="flex-1 whitespace-nowrap bg-gradient-to-r from-sun-green to-emerald-500 text-black font-bold py-3.5 rounded-xl hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:scale-[1.02] active:scale-95 transition-all duration-300">
-                      {investorForm === 'login' ? 'Giriş Yap' : 'Kayıt Ol'}
+                    <button disabled={loading} type="submit" className="flex-1 whitespace-nowrap bg-gradient-to-r from-sun-green to-emerald-500 text-black font-bold py-3.5 rounded-xl hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:scale-[1.02] active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:scale-100">
+                      {loading ? 'Bekleniyor...' : (investorForm === 'login' ? 'Giriş Yap' : 'Kayıt Ol')}
                     </button>
                     <button type="button" onClick={() => handleInvestorAction(null)} className="px-4 py-3 border border-white/10 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 hover:border-white/20 transition-all duration-300 flex items-center justify-center flex-shrink-0">
                       <X className="w-5 h-5" />
@@ -164,19 +204,21 @@ function LoginPage({ onLogin }) {
 
               {/* Form Section (Expands when active) */}
               <div className={`transition-all duration-700 ease-in-out overflow-hidden transform origin-top ${ownerForm ? 'max-h-[500px] opacity-100 mt-4 translate-y-0 scale-100' : 'max-h-0 opacity-0 mt-0 -translate-y-4 scale-95'}`}>
-                <form onSubmit={(e) => preventSubmit(e, 'owner')} className="flex flex-col gap-4 relative z-10">
+                <form onSubmit={(e) => handleSubmit(e, 'owner')} className="flex flex-col gap-4 relative z-10">
                   <h3 className="text-white font-medium mb-1">{ownerForm === 'login' ? 'Geliştirici Girişi' : 'Geliştirici Hesabı Oluştur'}</h3>
                   
+                  {errorMsg && <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-lg">{errorMsg}</div>}
+
                   <div className={`transition-all duration-700 ease-in-out overflow-hidden transform origin-top ${ownerForm === 'signup' ? 'max-h-[100px] opacity-100 translate-y-0 scale-100' : 'max-h-0 opacity-0 -translate-y-4 scale-95'}`}>
-                    <input required={ownerForm === 'signup'} type="text" placeholder="Firma / Ad Soyad" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/50 transition-all placeholder:text-gray-500" />
+                    <input required={ownerForm === 'signup'} value={fullName} onChange={e => setFullName(e.target.value)} type="text" placeholder="Firma / Ad Soyad" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/50 transition-all placeholder:text-gray-500" />
                   </div>
                   
-                  <input required type="email" placeholder="E-posta Adresi" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/50 transition-all placeholder:text-gray-500" />
-                  <input required type="password" placeholder="Şifre" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/50 transition-all placeholder:text-gray-500" />
+                  <input required value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="E-posta Adresi" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/50 transition-all placeholder:text-gray-500" />
+                  <input required value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="Şifre" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/50 transition-all placeholder:text-gray-500" />
                   
                   <div className="flex gap-3 mt-2">
-                    <button type="submit" className="flex-1 whitespace-nowrap bg-gradient-to-r from-brand-blue to-blue-500 text-white font-bold py-3.5 rounded-xl hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] hover:scale-[1.02] active:scale-95 transition-all duration-300">
-                      {ownerForm === 'login' ? 'Giriş Yap' : 'Kayıt Ol'}
+                    <button disabled={loading} type="submit" className="flex-1 whitespace-nowrap bg-gradient-to-r from-brand-blue to-blue-500 text-white font-bold py-3.5 rounded-xl hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] hover:scale-[1.02] active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:scale-100">
+                      {loading ? 'Bekleniyor...' : (ownerForm === 'login' ? 'Giriş Yap' : 'Kayıt Ol')}
                     </button>
                     <button type="button" onClick={() => handleOwnerAction(null)} className="px-4 py-3 border border-white/10 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 hover:border-white/20 transition-all duration-300 flex items-center justify-center flex-shrink-0">
                       <X className="w-5 h-5" />
