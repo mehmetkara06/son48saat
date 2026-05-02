@@ -121,7 +121,7 @@ function DashboardPage() {
   const [withdrawingAsset, setWithdrawingAsset] = useState(null);
   const [withdrawStatus, setWithdrawStatus] = useState('idle');
 
-  const { setBalance } = useOutletContext() || { setBalance: () => {} };
+  const { balance, setBalance } = useOutletContext() || { balance: 0, setBalance: () => {} };
 
   const [projects, setProjects] = useState(buildProjects);
 
@@ -161,10 +161,11 @@ function DashboardPage() {
 
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard title="Toplam Portföy Değeri" value="$124,500" icon={Wallet} trend="+12.5%" />
-        <StatCard title="Toplam Üretilen Enerji" value="45.2 MWh" icon={Zap} trend="+8.2%" />
-        <StatCard title="Önlenen Karbon Salınımı" value="18.5 Ton" subtext="≈ 832 Ağaç Kurtarıldı" icon={Leaf} trend="+15.3%" />
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <StatCard title="Cüzdan Bakiyesi" value={`$${balance.toLocaleString('en-US', { maximumFractionDigits: 0 })}`} icon={Wallet} trend="Kullanılabilir" />
+        <StatCard title="Yatırım Değeri" value={`$${projects.reduce((acc, p) => acc + parseFloat(p.value.replace(/[^0-9.-]+/g,"") || 0), 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}`} icon={Activity} trend="Portföy" />
+        <StatCard title="Üretilen Enerji" value="45.2 MWh" icon={Zap} trend="+8.2%" />
+        <StatCard title="Karbon Önleme" value="18.5 Ton" subtext="≈ 832 Ağaç" icon={Leaf} trend="+15.3%" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
