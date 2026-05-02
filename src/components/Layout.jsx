@@ -22,6 +22,14 @@ function Layout({ role, onLogout, userFullName }) {
   const [passwordError, setPasswordError] = useState('');
 
   // Wallet States
+  const [balance, setBalance] = useState(() => {
+    const saved = localStorage.getItem('sunshare_balance');
+    return saved !== null ? parseFloat(saved) : 12450.00;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('sunshare_balance', balance.toString());
+  }, [balance]);
   const [showWalletModal, setShowWalletModal] = useState(false);
   const [walletTab, setWalletTab] = useState('deposit'); // 'deposit' | 'withdraw'
   const [walletMethod, setWalletMethod] = useState('card'); // 'iban' | 'card'
@@ -71,6 +79,14 @@ function Layout({ role, onLogout, userFullName }) {
     setWalletStatus('processing');
     setTimeout(() => {
       setWalletStatus('success');
+      
+      const amount = parseFloat(walletAmount);
+      if (walletTab === 'deposit') {
+        setBalance(prev => prev + amount);
+      } else {
+        setBalance(prev => prev - amount);
+      }
+
       setTimeout(() => {
         setShowWalletModal(false);
         setWalletStatus('idle');
@@ -225,7 +241,7 @@ function Layout({ role, onLogout, userFullName }) {
 
       {/* Main Content */}
       <main className="flex-1 pt-32 pb-12 px-6 max-w-7xl mx-auto w-full relative z-10">
-        <Outlet />
+        <Outlet context={{ balance, setBalance }} />
       </main>
 
       {/* Wallet Modal */}
@@ -260,7 +276,9 @@ function Layout({ role, onLogout, userFullName }) {
 
                 <div className="mb-6 bg-sun-green/10 border border-sun-green/20 p-4 rounded-2xl flex justify-between items-center">
                   <span className="text-gray-300 text-sm font-medium">Mevcut Bakiye</span>
-                  <span className="text-3xl font-extrabold text-sun-green drop-shadow-md">$12,450.00</span>
+                  <span className="text-3xl font-extrabold text-sun-green drop-shadow-md">
+                    ${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
                 </div>
 
                 <div className="flex gap-2 p-1 bg-black/40 border border-white/10 rounded-xl mb-6">
@@ -287,7 +305,7 @@ function Layout({ role, onLogout, userFullName }) {
                         required 
                         type="number" 
                         min="50" 
-                        max={walletTab === 'withdraw' ? 12450 : 100000}
+                        max={walletTab === 'withdraw' ? balance : 100000}
                         value={walletAmount}
                         onChange={(e) => setWalletAmount(e.target.value)}
                         placeholder="0.00" 

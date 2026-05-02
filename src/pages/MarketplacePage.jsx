@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { Search, MapPin, Battery, PieChart, ArrowRight, Star, Map as MapIcon, Grid, X, FileText, CheckCircle, TrendingUp, Sun, Wind, Droplets } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -165,6 +166,8 @@ function MarketplacePage() {
   const [investAmount, setInvestAmount] = useState('');
   const [investStatus, setInvestStatus] = useState('idle');
 
+  const { balance, setBalance } = useOutletContext() || { balance: 0, setBalance: () => {} };
+
   useEffect(() => {
     if (!selectedProject) {
       setIsInvesting(false);
@@ -175,9 +178,16 @@ function MarketplacePage() {
 
   const handleInvestSubmit = (e) => {
     e.preventDefault();
+    const amount = parseFloat(investAmount);
+    if (balance < amount) {
+      alert("Yetersiz bakiye. Lütfen cüzdanınıza para yatırın.");
+      return;
+    }
+
     setInvestStatus('processing');
     setTimeout(() => {
       setInvestStatus('success');
+      setBalance(prev => prev - amount);
       setTimeout(() => {
         setSelectedProject(null);
       }, 2000);

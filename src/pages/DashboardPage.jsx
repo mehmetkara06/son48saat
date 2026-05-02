@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Wallet, Zap, Leaf, TrendingUp, ArrowUpRight, Activity, X, CreditCard, Building2, CheckCircle2 } from 'lucide-react';
 
@@ -64,7 +65,27 @@ function DashboardPage() {
   const [expandedAsset, setExpandedAsset] = useState(null);
   const [timeframe, setTimeframe] = useState('monthly');
   
+  const [withdrawingAsset, setWithdrawingAsset] = useState(null);
+  const [withdrawStatus, setWithdrawStatus] = useState('idle');
 
+  const { setBalance } = useOutletContext() || { setBalance: () => {} };
+
+  const handleWithdrawAsset = (e, index) => {
+    e.stopPropagation();
+    setWithdrawingAsset(index);
+    setWithdrawStatus('processing');
+    setTimeout(() => {
+      setWithdrawStatus('success');
+      const assetValueStr = projects[index].value;
+      const assetValueNum = parseFloat(assetValueStr.replace(/[^0-9.-]+/g,""));
+      setBalance(prev => prev + assetValueNum);
+
+      setTimeout(() => {
+        setWithdrawStatus('idle');
+        setWithdrawingAsset(null);
+      }, 2500);
+    }, 1500);
+  };
 
   const projects = [
     { 
@@ -91,7 +112,7 @@ function DashboardPage() {
       name: 'GES Projesi - Antalya', 
       share: '12%', 
       value: '$55,500', 
-      status: 'Kurulumda',
+      status: 'Pasif',
       location: 'Antalya, Korkuteli',
       address: 'Bozova Köyü Arazisi, Parsel 12',
       energyReturn: 'Yıllık ~250 MWh (Tahmini)',
@@ -176,7 +197,7 @@ function DashboardPage() {
               >
                 <div className="flex justify-between items-start mb-3">
                   <h4 className="font-semibold text-white group-hover:text-sun-green transition-colors">{project.name}</h4>
-                  <span className={`text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full ${project.status === 'Aktif' ? 'bg-sun-green/10 text-sun-green border border-sun-green/20' : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'}`}>
+                  <span className={`text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full ${project.status === 'Aktif' ? 'bg-sun-green/10 text-sun-green border border-sun-green/20' : project.status === 'Pasif' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'}`}>
                     {project.status}
                   </span>
                 </div>
@@ -204,6 +225,25 @@ function DashboardPage() {
                       <span className="text-brand-blue block text-[11px] uppercase tracking-wider mb-2 font-semibold">Nihai Fizibilite Raporu Özeti</span>
                       <span className="text-gray-400 text-xs leading-relaxed inline-block">{project.feasibility}</span>
                     </div>
+                    {project.status === 'Pasif' && (
+                      <div className="pt-2 mt-4 border-t border-white/10">
+                        {withdrawingAsset === i && withdrawStatus === 'success' ? (
+                          <div className="flex items-center justify-center text-sun-green font-bold text-sm bg-sun-green/10 p-3 rounded-xl border border-sun-green/20">
+                            <CheckCircle2 className="w-5 h-5 mr-2" />
+                            Varlık nakde çevrildi ve cüzdana aktarıldı.
+                          </div>
+                        ) : (
+                          <button 
+                            onClick={(e) => handleWithdrawAsset(e, i)}
+                            disabled={withdrawingAsset === i && withdrawStatus === 'processing'}
+                            className="w-full flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-sun-green to-emerald-500 text-black font-bold rounded-xl hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all disabled:opacity-50"
+                          >
+                            <Wallet className="w-4 h-4 mr-2" />
+                            {withdrawingAsset === i && withdrawStatus === 'processing' ? 'İşleniyor...' : 'Varlığı Nakde Çevir (Para Çek)'}
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
