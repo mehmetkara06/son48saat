@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, MapPin, Battery, PieChart, ArrowRight, Star, Map as MapIcon, Grid } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Search, MapPin, Battery, PieChart, ArrowRight, Star, Map as MapIcon, Grid, X, FileText, CheckCircle, TrendingUp, Sun, Wind, Droplets } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 
@@ -33,7 +33,16 @@ const projects = [
     minInvestment: '$500',
     totalCost: '$1,850,000',
     image: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&q=80&w=600',
-    featured: true
+    featured: true,
+    type: 'solar',
+    feasibility: {
+      status: 'Onaylandı',
+      ced: 'Gerekli Değildir / Olumlu',
+      gridConnection: 'Çağrı Mektubu Alındı',
+      annualProduction: '3.750 MWh',
+      co2Reduction: '1.500 Ton / Yıl',
+      description: 'Karapınar bölgesinde yer alan arazi, Türkiye\'nin en yüksek güneşlenme süresine sahip bölgelerinden biridir. Eğimsiz arazi yapısı sayesinde kurulum maliyetleri minimuma indirilmiş olup, çift yönlü (bifacial) paneller kullanılarak üretim verimliliği %15 artırılmıştır. Projenin şebeke bağlantı noktasına uzaklığı sadece 1.2 km\'dir.'
+    }
   },
   {
     id: 2,
@@ -46,7 +55,16 @@ const projects = [
     minInvestment: '$250',
     totalCost: '$650,000',
     image: 'https://images.unsplash.com/photo-1592833159057-6afdaf65f973?auto=format&fit=crop&q=80&w=600',
-    featured: false
+    featured: false,
+    type: 'solar',
+    feasibility: {
+      status: 'Kurulum Aşamasında',
+      ced: 'Muaf',
+      gridConnection: 'Onaylandı (Öz Tüketim)',
+      annualProduction: '1.100 MWh',
+      co2Reduction: '450 Ton / Yıl',
+      description: 'Bursa Organize Sanayi Bölgesinde yer alan tekstil fabrikasının çatısına kurulacak olan sistem, fabrikanın gündüz enerji ihtiyacının %85\'ini karşılayacaktır. Öz tüketim modeli ile şebeke satış maliyetleri sıfırlanmış, endüstriyel tarife üzerinden sağlanan tasarruf ile amortisman süresi 3.8 yıla kadar düşürülmüştür.'
+    }
   },
   {
     id: 3,
@@ -59,19 +77,105 @@ const projects = [
     minInvestment: '$1,000',
     totalCost: '$920,000',
     image: 'https://images.unsplash.com/photo-1613665813446-82a78c468a1d?auto=format&fit=crop&q=80&w=600',
-    featured: true
+    featured: true,
+    type: 'solar',
+    feasibility: {
+      status: 'Onaylandı',
+      ced: 'Olumlu',
+      gridConnection: 'Onay Aşamasında',
+      annualProduction: '1.950 MWh',
+      co2Reduction: '800 Ton / Yıl',
+      description: 'Tarımsal arazilerin hem elektrik üretimi hem de tarım için eş zamanlı kullanıldığı Agrivoltaik sistemdir. Paneller, gölge seven tarım ürünleri (örneğin sera domatesi) için ideal ortamı sağlarken, buharlaşmayı azaltarak sulama suyundan %30 tasarruf sağlamaktadır. Bölgenin yüksek güneş radyasyonu verimliliği garanti etmektedir.'
+    }
+  },
+  {
+    id: 4,
+    title: 'Rüzgar Enerjisi Santrali - RES',
+    location: 'İzmir, Çeşme',
+    coords: [38.3229, 26.3069],
+    capacity: '4.0 MWp',
+    roi: '5.1 Yıl',
+    fundingProgress: 25,
+    minInvestment: '$2,000',
+    totalCost: '$4,200,000',
+    image: 'https://images.unsplash.com/photo-1466611653911-95081537e5b7?auto=format&fit=crop&q=80&w=600',
+    featured: false,
+    type: 'wind',
+    feasibility: {
+      status: 'Ön Lisans Alındı',
+      ced: 'Onaylandı',
+      gridConnection: 'Trafo Kapasitesi Ayrıldı',
+      annualProduction: '14.500 MWh',
+      co2Reduction: '6.200 Ton / Yıl',
+      description: 'Çeşme yarımadasının kesintisiz Ege rüzgarlarını alan tepe noktasına kurulacak 2 adet 2MW türbinden oluşmaktadır. Bölgedeki yıllık ortalama rüzgar hızı 7.8 m/s olarak ölçülmüş olup, kapasite faktörü %42 seviyelerindedir. Kurulum yapılacak arazi kamu arazisi olup kiralama süreçleri tamamlanmıştır.'
+    }
+  },
+  {
+    id: 5,
+    title: 'Biyogaz Tesis Genişletmesi',
+    location: 'Afyonkarahisar, Türkiye',
+    coords: [38.7507, 30.5387],
+    capacity: '1.5 MWp',
+    roi: '3.5 Yıl',
+    fundingProgress: 60,
+    minInvestment: '$500',
+    totalCost: '$1,200,000',
+    image: 'https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&q=80&w=600',
+    featured: true,
+    type: 'biomass',
+    feasibility: {
+      status: 'Genişleme Onaylandı',
+      ced: 'Kapsam Dışı',
+      gridConnection: 'Mevcut Bağlantı',
+      annualProduction: '11.800 MWh',
+      co2Reduction: '8.500 Ton / Yıl (Metan Dahil)',
+      description: 'Mevcut çalışan biyogaz tesisine ek kapasite artışı projesidir. Bölgedeki yoğun büyükbaş hayvancılık faaliyetleri sayesinde hammadde (atık) tedariki 10 yıllık sözleşmelerle güvence altına alınmıştır. 7/24 baz yük santrali olarak çalıştığı için güneş ve rüzgara kıyasla yıl boyu sabit ve tahmin edilebilir getiri sağlar.'
+    }
+  },
+  {
+    id: 6,
+    title: 'Yüzer GES (Floating Solar)',
+    location: 'İstanbul, Büyükçekmece',
+    coords: [41.0425, 28.5358],
+    capacity: '1.0 MWp',
+    roi: '4.8 Yıl',
+    fundingProgress: 15,
+    minInvestment: '$1,000',
+    totalCost: '$1,050,000',
+    image: 'https://images.unsplash.com/photo-1625904835711-cbddfa969cb0?auto=format&fit=crop&q=80&w=600',
+    featured: false,
+    type: 'solar',
+    feasibility: {
+      status: 'Su Yönetimi Onayı Alındı',
+      ced: 'Olumlu',
+      gridConnection: 'Başvuru Aşamasında',
+      annualProduction: '1.600 MWh',
+      co2Reduction: '650 Ton / Yıl',
+      description: 'Göl yüzeyine kurulacak olan Yüzer Güneş Enerji Santrali projesidir. Suyun soğutucu etkisi sayesinde paneller standart arazi kurulumlarına göre %12 daha fazla enerji üretir. Ayrıca su yüzeyini kaplayarak yaz aylarındaki şiddetli buharlaşmayı önler ve tatlı su rezervinin korunmasına ekolojik katkı sağlar.'
+    }
   }
 ];
 
 function MarketplacePage() {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'map'
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProject, setSelectedProject] = useState(null);
+
+  // Filter projects based on search query
+  const filteredProjects = useMemo(() => {
+    const lowerQuery = searchQuery.toLowerCase();
+    return projects.filter(p => 
+      p.title.toLowerCase().includes(lowerQuery) || 
+      p.location.toLowerCase().includes(lowerQuery)
+    );
+  }, [searchQuery]);
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 relative">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">Yatırım Fırsatları</h1>
-          <p className="text-gray-400 mt-2 text-lg font-light">Onaylanmış güneş enerjisi projelerine dijital hisselerle ortak olun.</p>
+          <p className="text-gray-400 mt-2 text-lg font-light">Onaylanmış sürdürülebilir enerji projelerine dijital hisselerle ortak olun.</p>
         </div>
         
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
@@ -92,22 +196,30 @@ function MarketplacePage() {
           </div>
 
           <div className="relative w-full sm:w-80 group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-sun-green to-emerald-400 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-            <div className="relative flex items-center bg-black/50 backdrop-blur-xl border border-white/10 rounded-full px-4 py-3">
-              <Search className="text-gray-400 w-5 h-5 mr-3 group-hover:text-sun-green transition-colors" />
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-sun-green to-brand-blue rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+            <div className="relative flex items-center bg-sun-green/10 backdrop-blur-xl border border-sun-green/40 rounded-full px-4 py-3 shadow-[0_0_15px_rgba(16,185,129,0.15)] focus-within:border-sun-green focus-within:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all">
+              <Search className="text-sun-green w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
               <input 
                 type="text" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Proje veya lokasyon ara..." 
-                className="w-full bg-transparent text-white placeholder-gray-500 focus:outline-none"
+                className="w-full bg-transparent text-white placeholder-emerald-200/50 focus:outline-none"
               />
             </div>
           </div>
         </div>
       </div>
 
-      {viewMode === 'grid' ? (
+      {filteredProjects.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 bg-black/20 rounded-3xl border border-white/5">
+          <Search className="w-16 h-16 text-gray-600 mb-4" />
+          <h3 className="text-xl font-bold text-white mb-2">Proje Bulunamadı</h3>
+          <p className="text-gray-400 text-center">Aradığınız kritere ("{searchQuery}") uygun aktif proje bulunmamaktadır.<br/>Lütfen başka bir anahtar kelime deneyin.</p>
+        </div>
+      ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pt-4">
-          {projects.map(project => (
+          {filteredProjects.map(project => (
             <div key={project.id} className="relative group rounded-[2rem] bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.15)] overflow-hidden flex flex-col">
               
               {project.featured && (
@@ -121,7 +233,10 @@ function MarketplacePage() {
               <div className="h-56 overflow-hidden relative rounded-t-[2rem]">
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10"></div>
                 <img src={project.image} alt={project.title} className="w-full h-full object-cover transform group-hover:scale-110 group-hover:rotate-1 transition-transform duration-700 ease-out" />
-                <div className="absolute top-5 left-5 z-20 bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-lg">
+                <div className="absolute top-5 left-5 z-20 bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-lg flex items-center">
+                  {project.type === 'solar' && <Sun className="w-3 h-3 mr-1.5 text-yellow-400" />}
+                  {project.type === 'wind' && <Wind className="w-3 h-3 mr-1.5 text-blue-300" />}
+                  {project.type === 'biomass' && <Droplets className="w-3 h-3 mr-1.5 text-green-400" />}
                   Doğrulanmış
                 </div>
               </div>
@@ -149,7 +264,7 @@ function MarketplacePage() {
                     <span className="text-gray-400">{project.totalCost}</span>
                   </div>
                   <div className="h-2.5 bg-black/50 border border-white/5 rounded-full overflow-hidden mb-6">
-                    <div className="h-full bg-gradient-to-r from-sun-green to-emerald-400 relative" style={{ width: `${project.fundingProgress}%` }}>
+                    <div className="h-full bg-gradient-to-r from-sun-green to-emerald-400 relative transition-all duration-1000" style={{ width: `${project.fundingProgress}%` }}>
                       <div className="absolute inset-0 bg-white/20 w-full animate-[pulse_2s_ease-in-out_infinite]"></div>
                     </div>
                   </div>
@@ -159,7 +274,10 @@ function MarketplacePage() {
                       <span className="block text-[10px] uppercase font-bold text-gray-500 mb-0.5">Min. Yatırım</span>
                       <span className="text-white font-bold text-xl">{project.minInvestment}</span>
                     </div>
-                    <button className="px-5 py-2.5 bg-white text-black font-bold rounded-full hover:bg-sun-green hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:scale-105 transition-all duration-300 flex items-center">
+                    <button 
+                      onClick={() => setSelectedProject(project)}
+                      className="px-5 py-2.5 bg-white text-black font-bold rounded-full hover:bg-sun-green hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:scale-105 transition-all duration-300 flex items-center"
+                    >
                       İncele <ArrowRight className="w-4 h-4 ml-2" />
                     </button>
                   </div>
@@ -178,10 +296,11 @@ function MarketplacePage() {
             className="z-0"
           >
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              className="colored-dark-map"
             />
-            {projects.map(project => (
+            {filteredProjects.map(project => (
               <Marker key={project.id} position={project.coords} icon={sunshareIcon}>
                 <Popup className="sunshare-popup">
                   <div className="w-64 p-1">
@@ -207,7 +326,10 @@ function MarketplacePage() {
                       </div>
                     </div>
                     
-                    <button className="w-full bg-gradient-to-r from-emerald-500 to-emerald-400 text-white font-bold py-2 rounded-lg shadow-md hover:shadow-lg transition-all text-sm">
+                    <button 
+                      onClick={() => setSelectedProject(project)}
+                      className="w-full bg-gradient-to-r from-emerald-500 to-emerald-400 text-white font-bold py-2 rounded-lg shadow-md hover:shadow-lg transition-all text-sm"
+                    >
                       Projeyi İncele
                     </button>
                   </div>
@@ -217,6 +339,9 @@ function MarketplacePage() {
           </MapContainer>
           
           <style>{`
+            .colored-dark-map {
+              filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+            }
             .sunshare-popup .leaflet-popup-content-wrapper {
               background: white;
               color: #333;
@@ -228,6 +353,146 @@ function MarketplacePage() {
             }
             .sunshare-popup .leaflet-popup-content {
               margin: 16px;
+            }
+          `}</style>
+        </div>
+      )}
+
+      {/* Feasibility Report Modal */}
+      {selectedProject && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setSelectedProject(null)}></div>
+          
+          <div className="glass-panel w-full max-w-4xl bg-[#0a0a0a] border border-white/20 rounded-3xl shadow-2xl relative z-10 animate-in zoom-in-95 duration-300 overflow-hidden flex flex-col max-h-full">
+            {/* Modal Header Image */}
+            <div className="h-48 sm:h-64 relative flex-shrink-0">
+              <img src={selectedProject.image} alt={selectedProject.title} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-black/40 to-transparent"></div>
+              
+              <button 
+                onClick={() => setSelectedProject(null)} 
+                className="absolute top-4 right-4 bg-black/50 backdrop-blur-md border border-white/20 p-2 rounded-full text-white hover:bg-white/20 transition-all z-20"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="absolute bottom-6 left-8 right-8">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="bg-sun-green text-black text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+                    {selectedProject.type === 'solar' ? 'Güneş Enerjisi' : selectedProject.type === 'wind' ? 'Rüzgar Enerjisi' : 'Biyokütle'}
+                  </span>
+                  <span className="bg-white/20 backdrop-blur-md border border-white/10 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full flex items-center">
+                    <MapPin className="w-3 h-3 mr-1" /> {selectedProject.location}
+                  </span>
+                </div>
+                <h2 className="text-3xl md:text-4xl font-extrabold text-white leading-tight drop-shadow-lg">{selectedProject.title}</h2>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-8 overflow-y-auto custom-scrollbar">
+              <div className="flex items-center mb-6 border-b border-white/10 pb-4">
+                <FileText className="w-6 h-6 mr-3 text-sun-green" />
+                <h3 className="text-2xl font-bold text-white">Nihai Fizibilite Raporu</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                {/* Left Column: Quick Stats */}
+                <div className="space-y-4">
+                  <div className="bg-black/40 border border-white/5 p-4 rounded-2xl">
+                    <div className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Amortisman (ROI)</div>
+                    <div className="text-sun-green font-bold text-2xl flex items-baseline">
+                      {selectedProject.roi} <span className="text-sm font-medium text-gray-400 ml-2">Tahmini</span>
+                    </div>
+                  </div>
+                  <div className="bg-black/40 border border-white/5 p-4 rounded-2xl">
+                    <div className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Kurulu Kapasite</div>
+                    <div className="text-white font-bold text-2xl">{selectedProject.capacity}</div>
+                  </div>
+                  <div className="bg-black/40 border border-white/5 p-4 rounded-2xl">
+                    <div className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Yıllık Üretim</div>
+                    <div className="text-brand-blue font-bold text-xl">{selectedProject.feasibility.annualProduction}</div>
+                  </div>
+                  <div className="bg-black/40 border border-white/5 p-4 rounded-2xl">
+                    <div className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">CO₂ Tasarrufu</div>
+                    <div className="text-emerald-400 font-bold text-xl">{selectedProject.feasibility.co2Reduction}</div>
+                  </div>
+                </div>
+
+                {/* Right Column: Descriptions and Status */}
+                <div className="md:col-span-2 space-y-6">
+                  <div>
+                    <h4 className="text-lg font-bold text-white mb-3">Proje Özeti ve Teknik Analiz</h4>
+                    <p className="text-gray-300 leading-relaxed text-sm">
+                      {selectedProject.feasibility.description}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="text-lg font-bold text-white mb-4">Resmi Süreç ve İzin Durumu</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="flex items-start">
+                        <CheckCircle className="w-5 h-5 text-sun-green mr-3 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <div className="text-white font-medium text-sm">Genel Durum</div>
+                          <div className="text-gray-400 text-xs">{selectedProject.feasibility.status}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-start">
+                        <CheckCircle className="w-5 h-5 text-sun-green mr-3 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <div className="text-white font-medium text-sm">ÇED Kararı</div>
+                          <div className="text-gray-400 text-xs">{selectedProject.feasibility.ced}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-start">
+                        <CheckCircle className="w-5 h-5 text-sun-green mr-3 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <div className="text-white font-medium text-sm">Şebeke Bağlantısı</div>
+                          <div className="text-gray-400 text-xs">{selectedProject.feasibility.gridConnection}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-start">
+                        <TrendingUp className="w-5 h-5 text-sun-green mr-3 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <div className="text-white font-medium text-sm">Minimum Yatırım</div>
+                          <div className="text-gray-400 text-xs">{selectedProject.minInvestment} ile başlangıç</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Bar */}
+              <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-gradient-to-r from-sun-green/10 to-transparent border border-sun-green/20 rounded-2xl mt-4">
+                <div className="mb-4 sm:mb-0">
+                  <div className="text-gray-400 text-sm mb-1">Şu ana kadar toplanan fon:</div>
+                  <div className="flex items-center">
+                    <span className="text-2xl font-bold text-white mr-3">%{selectedProject.fundingProgress}</span>
+                    <div className="w-32 h-2 bg-black/50 rounded-full overflow-hidden">
+                      <div className="h-full bg-sun-green" style={{ width: `${selectedProject.fundingProgress}%` }}></div>
+                    </div>
+                  </div>
+                </div>
+                <button className="w-full sm:w-auto px-8 py-3.5 bg-sun-green text-black font-bold rounded-xl hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:scale-[1.02] active:scale-95 transition-all duration-300">
+                  Hemen Yatırım Yap
+                </button>
+              </div>
+              
+            </div>
+          </div>
+          
+          <style>{`
+            .custom-scrollbar::-webkit-scrollbar {
+              width: 6px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+              background: transparent;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+              background-color: rgba(255, 255, 255, 0.2);
+              border-radius: 10px;
             }
           `}</style>
         </div>
