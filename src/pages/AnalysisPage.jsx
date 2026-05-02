@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MapPin, Calculator, AlertTriangle, CheckCircle, Zap, DollarSign, TrendingUp, Leaf, AlertCircle, Download, PlusCircle, Sun, Cloud, Wind, Clock } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { MapPin, Calculator, AlertTriangle, CheckCircle, Zap, DollarSign, TrendingUp, Leaf, AlertCircle, Download, PlusCircle, Sun, Cloud, Wind, Clock, Search, X } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import L from 'leaflet';
 
@@ -259,10 +259,27 @@ function LocationMarker({ position, setPosition }) {
   );
 }
 
+// Haritayı program aracılığıyla belirtilen koordinata odağlayan yardımcı bileşen
+function MapFlyTo({ target }) {
+  const map = useMap();
+  useEffect(() => {
+    if (target) {
+      map.flyTo([target.lat, target.lng], 14, { duration: 1.5 });
+    }
+  }, [target, map]);
+  return null;
+}
+
 function AnalysisPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  // Harita arama kutusu state'leri
+  const [searchQuery, setSearchQuery]         = useState('');
+  const [searchResults, setSearchResults]     = useState([]);
+  const [searchLoading, setSearchLoading]     = useState(false);
+  const [mapFlyTarget, setMapFlyTarget]       = useState(null);
+  const searchTimerRef                        = useRef(null);
   const resultsRef = useRef(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -355,7 +372,38 @@ function AnalysisPage() {
     price: 0.22
   });
 
+  // Nominatim tabanlı konum arama fonksiyonu
+  const handleLocationSearch = (query) => {
+    setSearchQuery(query);
+    clearTimeout(searchTimerRef.current);
+    if (!query.trim()) { setSearchResults([]); return; }
+    setSearchLoading(true);
+    searchTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&accept-language=tr`
+        );
+        const data = await res.json();
+        setSearchResults(data);
+      } catch (_) { setSearchResults([]); }
+      setSearchLoading(false);
+    }, 400);
+  };
+
+  // Arama sonucuna tıklandığında: haritayı uç, marker'ı güncelle, adres alanını doldur
+  const handleSelectSearchResult = (result) => {
+    const lat = parseFloat(result.lat);
+    const lng = parseFloat(result.lon);
+    const newPos = { lat, lng };
+    setPosition(newPos);
+    setMapFlyTarget(newPos);
+    setAddressName(result.display_name.split(',').slice(0, 3).join(', '));
+    setSearchQuery(result.display_name.split(',')[0]);
+    setSearchResults([]);
+  };
+
   const handleCalculate = async () => {
+
     setLoading(true);
     setError(null);
     try {
@@ -527,17 +575,56 @@ function AnalysisPage() {
                 maxZoom={20}
               />
               <LocationMarker position={position} setPosition={setPosition} />
+              <MapFlyTo target={mapFlyTarget} />
             </MapContainer>
             
             {/* Map Overlay Top */}
-            <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black/80 to-transparent z-[400] pointer-events-none"></div>
+            <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-black/80 to-transparent z-[400] pointer-events-none"></div>
             
             {/* Map Overlay Bottom */}
             <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/80 to-transparent z-[400] pointer-events-none"></div>
 
-            <div className="absolute top-6 left-6 z-[400] glass-pill px-4 py-2.5 flex items-center shadow-2xl">
-              <MapPin className="w-4 h-4 text-brand-blue mr-2 animate-bounce" />
-              <span className="font-bold text-sm text-white">Uydu Haritası Üzerinden Seçim Yapın</span>
+            {/* Arama Kutusu */}
+            <div className="absolute top-4 left-4 right-4 z-[500]">
+              <div className="relative">
+                <div className="flex items-center bg-black/70 backdrop-blur-xl border border-white/20 rounded-2xl px-4 py-3 shadow-2xl focus-within:border-brand-blue/60 transition-all">
+                  <Search className="w-5 h-5 text-brand-blue mr-3 flex-shrink-0" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={e => handleLocationSearch(e.target.value)}
+                    placeholder="Şehir, ilçe veya adres arayın... (örn: Karapınar, Konya)"
+                    className="flex-1 bg-transparent text-white placeholder-gray-400 focus:outline-none text-sm font-medium"
+                  />
+                  {searchLoading && (
+                    <div className="w-4 h-4 border-2 border-brand-blue border-t-transparent rounded-full animate-spin ml-2 flex-shrink-0"></div>
+                  )}
+                  {searchQuery && !searchLoading && (
+                    <button onClick={() => { setSearchQuery(''); setSearchResults([]); }} className="ml-2 text-gray-400 hover:text-white transition-colors">
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Arama Sonuçları Dropdown */}
+                {searchResults.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-black/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+                    {searchResults.map((res, i) => (
+                      <button
+                        key={i}
+                        onClick={() => handleSelectSearchResult(res)}
+                        className="w-full text-left px-4 py-3 hover:bg-brand-blue/20 transition-colors border-b border-white/5 last:border-0 flex items-start gap-3"
+                      >
+                        <MapPin className="w-4 h-4 text-brand-blue flex-shrink-0 mt-0.5" />
+                        <div>
+                          <div className="text-white text-sm font-semibold leading-tight">{res.display_name.split(',')[0]}</div>
+                          <div className="text-gray-400 text-xs mt-0.5 line-clamp-1">{res.display_name.split(',').slice(1, 4).join(', ')}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
