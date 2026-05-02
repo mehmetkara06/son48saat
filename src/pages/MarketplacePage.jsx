@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, MapPin, Battery, PieChart, ArrowRight, Star, Map as MapIcon, Grid, X, FileText, CheckCircle, TrendingUp, Sun, Wind, Droplets } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -160,6 +160,29 @@ function MarketplacePage() {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'map'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProject, setSelectedProject] = useState(null);
+
+  const [isInvesting, setIsInvesting] = useState(false);
+  const [investAmount, setInvestAmount] = useState('');
+  const [investStatus, setInvestStatus] = useState('idle');
+
+  useEffect(() => {
+    if (!selectedProject) {
+      setIsInvesting(false);
+      setInvestStatus('idle');
+      setInvestAmount('');
+    }
+  }, [selectedProject]);
+
+  const handleInvestSubmit = (e) => {
+    e.preventDefault();
+    setInvestStatus('processing');
+    setTimeout(() => {
+      setInvestStatus('success');
+      setTimeout(() => {
+        setSelectedProject(null);
+      }, 2000);
+    }, 1500);
+  };
 
   // Filter projects based on search query
   const filteredProjects = useMemo(() => {
@@ -465,19 +488,62 @@ function MarketplacePage() {
               </div>
 
               {/* Action Bar */}
-              <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-gradient-to-r from-sun-green/10 to-transparent border border-sun-green/20 rounded-2xl mt-4">
-                <div className="mb-4 sm:mb-0">
-                  <div className="text-gray-400 text-sm mb-1">Şu ana kadar toplanan fon:</div>
-                  <div className="flex items-center">
-                    <span className="text-2xl font-bold text-white mr-3">%{selectedProject.fundingProgress}</span>
-                    <div className="w-32 h-2 bg-black/50 rounded-full overflow-hidden">
-                      <div className="h-full bg-sun-green" style={{ width: `${selectedProject.fundingProgress}%` }}></div>
-                    </div>
+              <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-gradient-to-r from-sun-green/10 to-transparent border border-sun-green/20 rounded-2xl mt-4 min-h-[90px]">
+                {investStatus === 'success' ? (
+                  <div className="w-full flex items-center justify-center text-sun-green font-bold text-lg animate-in fade-in zoom-in duration-300">
+                    <CheckCircle className="w-6 h-6 mr-2" />
+                    Yatırımınız Başarıyla Gerçekleşti!
                   </div>
-                </div>
-                <button className="w-full sm:w-auto px-8 py-3.5 bg-sun-green text-black font-bold rounded-xl hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:scale-[1.02] active:scale-95 transition-all duration-300">
-                  Hemen Yatırım Yap
-                </button>
+                ) : isInvesting ? (
+                  <form onSubmit={handleInvestSubmit} className="w-full flex flex-col sm:flex-row items-center gap-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                    <div className="flex-1 w-full relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                      <input 
+                        required 
+                        type="number" 
+                        min={parseInt(selectedProject.minInvestment.replace(/[^0-9]/g, ''))} 
+                        value={investAmount}
+                        onChange={(e) => setInvestAmount(e.target.value)}
+                        placeholder={`Min. ${selectedProject.minInvestment}`} 
+                        className="w-full bg-black/40 border border-white/10 rounded-xl pl-8 pr-4 py-3 text-white focus:outline-none focus:border-sun-green/50 transition-all font-semibold" 
+                      />
+                    </div>
+                    <div className="flex w-full sm:w-auto gap-2">
+                      <button 
+                        type="button" 
+                        onClick={() => setIsInvesting(false)}
+                        className="px-4 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-all font-medium"
+                      >
+                        İptal
+                      </button>
+                      <button 
+                        disabled={investStatus === 'processing' || !investAmount}
+                        type="submit" 
+                        className="flex-1 sm:flex-none px-8 py-3 bg-sun-green text-black font-bold rounded-xl hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all disabled:opacity-50"
+                      >
+                        {investStatus === 'processing' ? 'İşleniyor...' : 'Onayla'}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <div className="mb-4 sm:mb-0 w-full sm:w-auto">
+                      <div className="text-gray-400 text-sm mb-1">Şu ana kadar toplanan fon:</div>
+                      <div className="flex items-center">
+                        <span className="text-2xl font-bold text-white mr-3">%{selectedProject.fundingProgress}</span>
+                        <div className="w-32 h-2 bg-black/50 rounded-full overflow-hidden">
+                          <div className="h-full bg-sun-green" style={{ width: `${selectedProject.fundingProgress}%` }}></div>
+                        </div>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => setIsInvesting(true)}
+                      className="w-full sm:w-auto px-8 py-3.5 bg-sun-green text-black font-bold rounded-xl hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:scale-[1.02] active:scale-95 transition-all duration-300"
+                    >
+                      Hemen Yatırım Yap
+                    </button>
+                  </>
+                )}
               </div>
               
             </div>
