@@ -200,6 +200,38 @@ function MarketplacePage() {
     setTimeout(() => {
       setInvestStatus('success');
       setBalance(prev => prev - amount);
+
+      // Satın alınan varlığı portfolio'ya kaydet
+      const portfolio = JSON.parse(localStorage.getItem('sunshare_portfolio') || '[]');
+      const existingIdx = portfolio.findIndex(p => p.id === selectedProject.id);
+      if (existingIdx >= 0) {
+        portfolio[existingIdx].investedAmount += amount;
+      } else {
+        portfolio.push({
+          id:             selectedProject.id,
+          name:           selectedProject.title,
+          location:       selectedProject.location,
+          capacity:       selectedProject.capacity,
+          roi:            selectedProject.roi,
+          investedAmount: amount,
+          purchasedAt:    new Date().toISOString(),
+          status:         'Aktif',
+        });
+      }
+      localStorage.setItem('sunshare_portfolio', JSON.stringify(portfolio));
+
+      // Projenin fonlama ilerlemesini güncelle
+      const totalCostNum = parseFloat(
+        (selectedProject.totalCost || '$1,000,000').replace(/[^0-9.]/g, '')
+      );
+      const addedProgress = totalCostNum > 0 ? (amount / totalCostNum) * 100 : 0;
+      const newProgress = Math.min(100, Math.round(selectedProject.fundingProgress + addedProgress));
+      setAllProjects(prev => prev.map(p =>
+        p.id === selectedProject.id
+          ? { ...p, fundingProgress: newProgress }
+          : p
+      ));
+
       setTimeout(() => {
         setSelectedProject(null);
       }, 2000);
