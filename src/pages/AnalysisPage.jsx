@@ -90,14 +90,28 @@ function AnalysisPage() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     setIsPublishing(true);
+
+    let locationName = 'Türkiye';
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.lat}&lon=${position.lng}`);
+      const data = await res.json();
+      if (data && data.address) {
+        const city = data.address.city || data.address.province || data.address.state || '';
+        const district = data.address.town || data.address.county || data.address.district || '';
+        locationName = [district, city].filter(Boolean).join(', ') || 'Türkiye';
+      }
+    } catch (err) {
+      console.warn("Reverse geocoding failed", err);
+    }
+
     setTimeout(() => {
       // Proje objesini oluştur
       const newProject = {
         id: Date.now(),
         title: `Yeni ${form.investmentType.toUpperCase()} GES Projesi`,
-        location: 'Seçili Lokasyon (Harita)',
+        location: locationName,
         coords: [position.lat, position.lng],
         capacity: `${form.capacity} kWp`,
         roi: `${result.data.roiYears} Yıl`,
