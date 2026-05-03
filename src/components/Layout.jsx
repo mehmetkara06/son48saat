@@ -9,14 +9,13 @@ function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-function Layout({ role, user, onLogout, userFullName }) {
+function Layout({ role, user, onLogout, userFullName, isLightTheme, toggleTheme }) {
   const isInvestor = role === 'investor';
   const [scrolled, setScrolled] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [isLightTheme, setIsLightTheme] = useState(false);
   
   const [newPassword, setNewPassword] = useState('');
   const [passwordStatus, setPasswordStatus] = useState('idle');
@@ -71,13 +70,11 @@ function Layout({ role, user, onLogout, userFullName }) {
       setScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
-    setIsLightTheme(document.body.classList.contains('light-theme'));
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const toggleTheme = () => {
-    const isLight = document.body.classList.toggle('light-theme');
-    setIsLightTheme(isLight);
+  const handleToggleTheme = () => {
+    toggleTheme();
     setShowProfileMenu(false);
   };
 
@@ -260,7 +257,7 @@ function Layout({ role, user, onLogout, userFullName }) {
                       <Settings className="w-4 h-4 mr-3" /> Ayarlar
                     </button>
                     <button 
-                      onClick={toggleTheme}
+                      onClick={handleToggleTheme}
                       className={`w-full flex items-center px-3 py-2 text-sm text-gray-300 rounded-xl transition-colors ${hoverActive}`}
                     >
                       {isLightTheme ? <Moon className="w-4 h-4 mr-3" /> : <SunIcon className="w-4 h-4 mr-3" />} 

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Sun, Wallet, HardHat, ArrowRight, Info, Zap, Shield, BarChart3, Globe, LineChart, X } from 'lucide-react';
+import { Sun, Wallet, HardHat, ArrowRight, Info, Zap, Shield, BarChart3, Globe, LineChart, X, Moon } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import InfoCenter from '../components/InfoCenter';
 
-function LoginPage() {
+function LoginPage({ isLightTheme, toggleTheme }) {
   const [investorForm, setInvestorForm] = useState(null); // 'login' | 'signup' | null
   const [ownerForm, setOwnerForm] = useState(null);       // 'login' | 'signup' | null
   const [email, setEmail] = useState('');
@@ -72,6 +72,22 @@ function LoginPage() {
   return (
     <div className="min-h-screen text-sun-text flex flex-col p-3 md:p-6 relative overflow-y-auto overflow-x-hidden font-sans" style={{backgroundColor: 'var(--login-bg, #000)'}}>
       
+      {/* Theme Toggle Button */}
+      {toggleTheme && (
+        <button
+          onClick={toggleTheme}
+          title={isLightTheme ? 'Karanlık Mod' : 'Aydınlık Mod'}
+          className="fixed top-5 right-5 z-50 flex items-center gap-2 px-3 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg"
+        >
+          {isLightTheme
+            ? <Moon className="w-4 h-4 text-indigo-300" />
+            : <Sun className="w-4 h-4 text-yellow-300" />}
+          <span className="text-xs font-semibold hidden sm:block">
+            {isLightTheme ? 'Karanlık Mod' : 'Aydınlık Mod'}
+          </span>
+        </button>
+      )}
+
       {/* Background Image & Overlay */}
       <div 
         className={`fixed inset-0 z-0 bg-cover bg-center pointer-events-none transition-opacity duration-1000 ${isAnyFormActive ? 'opacity-40' : 'opacity-70'}`}
