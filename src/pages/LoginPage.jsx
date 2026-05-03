@@ -70,11 +70,11 @@ function LoginPage() {
   const isAnyFormActive = investorForm || ownerForm;
 
   return (
-    <div className="min-h-screen bg-black text-sun-text flex flex-col p-3 md:p-6 relative overflow-y-auto overflow-x-hidden font-sans">
+    <div className="min-h-screen text-sun-text flex flex-col p-3 md:p-6 relative overflow-y-auto overflow-x-hidden font-sans" style={{backgroundColor: 'var(--login-bg, #000)'}}>
       
       {/* Background Image & Overlay */}
       <div 
-        className={`fixed inset-0 z-0 bg-cover bg-center mix-blend-screen pointer-events-none transition-opacity duration-1000 ${isAnyFormActive ? 'opacity-40' : 'opacity-70'}`}
+        className={`fixed inset-0 z-0 bg-cover bg-center pointer-events-none transition-opacity duration-1000 ${isAnyFormActive ? 'opacity-40' : 'opacity-70'}`}
         style={{ backgroundImage: 'url("/hero_bg_hud.jpg")' }}
       ></div>
       <div className="fixed inset-0 z-0 bg-gradient-to-b from-black/40 via-black/30 to-black/90 pointer-events-none"></div>
