@@ -62,14 +62,21 @@ const StatCard = ({ title, value, subtext, icon: Icon, trend }) => (
   </div>
 );
 
+const getStatusFromProgress = (progress) => {
+  const p = parseFloat(progress) || 0;
+  if (p >= 80) return 'Aktif';
+  if (p >= 60) return 'Kurulum Aşamasında';
+  return 'Pasif';
+};
+
 const staticProjects = [
   { 
     name: 'Güneş Tarlası - İzmir', 
     share: '15%', 
     value: '$45,000', 
-    status: 'Aktif',
+    fundingProgress: 90,
     location: 'İzmir, Bergama',
-    address: 'Kozak Yaylası Mevkii, Parsel 4',
+    address: 'Kozak Yayla sı Mevkii, Parsel 4',
     energyReturn: 'Yıllık ~180 MWh',
     feasibility: 'Yıllık 3.100 saat güneşlenme. Şebeke entegrasyonu tamamlandı. Sosyal onay yüksek. Amortisman süresi: 4.2 yıl.'
   },
@@ -77,7 +84,7 @@ const staticProjects = [
     name: 'Endüstriyel Çatı - Manisa', 
     share: '8%', 
     value: '$24,000', 
-    status: 'Aktif',
+    fundingProgress: 72,
     location: 'Manisa, Yunusemre',
     address: 'Organize Sanayi Bölgesi, 3. Kısım',
     energyReturn: 'Yıllık ~95 MWh',
@@ -87,13 +94,13 @@ const staticProjects = [
     name: 'GES Projesi - Antalya', 
     share: '12%', 
     value: '$55,500', 
-    status: 'Pasif',
+    fundingProgress: 45,
     location: 'Antalya, Korkuteli',
     address: 'Bozova Köyü Arazisi, Parsel 12',
     energyReturn: 'Yıllık ~250 MWh (Tahmini)',
     feasibility: 'Yüksek irtifa ve soğuk hava nedeniyle panel verimi maksimumda. ÇED raporu olumlu. Amortisman süresi: 4.5 yıl.'
   },
-];
+].map(p => ({ ...p, status: getStatusFromProgress(p.fundingProgress) }));
 
 function DashboardPage() {
   const [expandedAsset, setExpandedAsset] = useState(null);
@@ -122,13 +129,14 @@ function DashboardPage() {
 
         if (error) throw error;
 
-        // Dönüştürme
+        // Dönüştürme + fonlama ilerlemesine göre otomatik durum
         const purchased = (data || []).map(p => ({
           id: p.id,
           name: p.project_snapshot?.name || 'Bilinmeyen Proje',
           share: 'Pazar Yeri',
           value: `$${p.amount.toLocaleString('en-US', { maximumFractionDigits: 0 })}`,
-          status: 'Aktif',
+          fundingProgress: p.project_snapshot?.fundingProgress ?? 50,
+          status: getStatusFromProgress(p.project_snapshot?.fundingProgress ?? 50),
           location: p.project_snapshot?.location || 'Belirtilmedi',
           address: p.project_snapshot?.location || 'Belirtilmedi',
           energyReturn: `${p.project_snapshot?.capacity || ''} kapasite / ROI: ${p.project_snapshot?.roi || ''}`,
@@ -171,22 +179,48 @@ function DashboardPage() {
     return () => window.removeEventListener('focus', onFocus);
   }, [user]);
 
-  const handleWithdrawAsset = (e, index) => {
+  const handleWithdrawAsset = async (e, index) => {
     e.stopPropagation();
+    const project = projects[index];
+
     setWithdrawingAsset(index);
     setWithdrawStatus('processing');
-    setTimeout(() => {
-      setWithdrawStatus('success');
-      const assetValueStr = projects[index].value;
-      const assetValueNum = parseFloat(assetValueStr.replace(/[^0-9.-]+/g,""));
+
+    try {
+      // Pazar yerinden alınan projelerse Supabase kaydını da sil
+      if (project._fromMarket && user && project.id) {
+        const { error: deleteError } = await supabase
+          .from('user_investments')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('id', project.id);
+
+        if (deleteError) throw deleteError;
+      }
+
+      // Bakiyeyi güncelle
+      const assetValueNum = parseFloat(project.value.replace(/[^0-9.-]+/g, ''));
       setBalance(prev => prev + assetValueNum);
 
+      setWithdrawStatus('success');
+
+      // 2.5 sn sonra listeden kaldır
       setTimeout(() => {
+        setProjects(prev => prev.filter((_, i) => i !== index));
         setWithdrawStatus('idle');
         setWithdrawingAsset(null);
+        setExpandedAsset(null);
       }, 2500);
-    }, 1500);
+
+    } catch (err) {
+      console.error('Para çekme işlemi başarısız:', err);
+      alert('Para çekme işlemi sırasında bir hata oluştu.');
+      setWithdrawStatus('idle');
+      setWithdrawingAsset(null);
+    }
   };
+
+
 
 
 

@@ -238,7 +238,8 @@ function MarketplacePage() {
             name: selectedProject.title,
             location: selectedProject.location,
             capacity: selectedProject.capacity,
-            roi: selectedProject.roi
+            roi: selectedProject.roi,
+            fundingProgress: selectedProject.fundingProgress
           }
         });
         if (error) console.error("Yatırım kaydedilemedi:", error);
