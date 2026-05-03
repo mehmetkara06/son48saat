@@ -36,34 +36,34 @@ const InfoCenter = () => {
   ];
 
   return (
-    <div className="w-full max-w-6xl mx-auto py-16 px-6 font-sans relative z-10">
+    <div className="w-full max-w-6xl mx-auto py-8 md:py-16 px-2 md:px-6 font-sans relative z-10">
       
       {/* Hero Section */}
-      <div className="text-center mb-16 relative">
+      <div className="text-center mb-10 md:mb-16 relative">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-sun-green/10 border border-sun-green/20 rounded-full text-sun-green text-sm font-medium mb-6">
           <Leaf className="w-4 h-4" /> Eğitim & Teknik Rehber
         </div>
-        <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6 tracking-tight">
+        <h1 className="text-2xl md:text-5xl font-extrabold text-white mb-4 md:mb-6 tracking-tight">
           Güneş Enerjisi <span className="text-transparent bg-clip-text bg-gradient-to-r from-sun-green to-emerald-400">Bilgi Merkezi</span>
         </h1>
-        <p className="text-lg text-gray-400 max-w-2xl mx-auto font-light">
+        <p className="text-sm md:text-lg text-gray-400 max-w-2xl mx-auto font-light">
           Güneş panelleri hakkında bilmeniz gereken her şey: teknik detaylar, bakım rehberi, verimlilik ipuçları ve yatırım bilgileri.
         </p>
       </div>
 
       {/* Navigation Pills */}
-      <div className="flex flex-wrap justify-center gap-3 mb-20 bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/5 shadow-xl">
+      <div className="flex flex-wrap justify-center gap-2 md:gap-3 mb-12 md:mb-20 bg-black/40 backdrop-blur-md p-3 md:p-4 rounded-2xl border border-white/5 shadow-xl">
         {[
           { icon: Zap, label: "Nasıl Çalışır?", href: "#nasil-calisir" },
           { icon: Layers, label: "Panel Türleri", href: "#panel-turleri" },
-          { icon: Wrench, label: "Bakım Rehberi", href: "#bakim" },
+          { icon: Wrench, label: "Bakım", href: "#bakim" },
           { icon: TrendingUp, label: "Verimlilik", href: "#verimlilik" },
-          { icon: Coins, label: "Maliyet & Teşvik", href: "#maliyet" },
+          { icon: Coins, label: "Maliyet", href: "#maliyet" },
           { icon: Leaf, label: "Çevresel Etki", href: "#cevre" },
           { icon: HelpCircle, label: "SSS", href: "#sss" },
         ].map((item, index) => (
-          <a key={index} href={item.href} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-sun-green hover:bg-white/5 border border-transparent hover:border-white/10 transition-all">
-            <item.icon className="w-4 h-4" /> {item.label}
+          <a key={index} href={item.href} className="flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 rounded-xl text-xs md:text-sm font-medium text-gray-400 hover:text-sun-green hover:bg-white/5 border border-transparent hover:border-white/10 transition-all">
+            <item.icon className="w-3.5 h-3.5 md:w-4 md:h-4" /> {item.label}
           </a>
         ))}
       </div>
@@ -80,7 +80,7 @@ const InfoCenter = () => {
           </div>
         </div>
 
-        <div className="glass-panel p-8 rounded-2xl mb-6">
+        <div className="glass-panel p-5 md:p-8 rounded-2xl mb-6">
           <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
             <Sun className="w-5 h-5 text-sun-green" /> Fotovoltaik Etki
           </h3>
@@ -95,8 +95,8 @@ const InfoCenter = () => {
               { num: "4-6", label: "Saat Pik Üretim/Gün" },
               { num: "%18-22", label: "Ortalama Verimlilik" },
             ].map((stat, i) => (
-              <div key={i} className="bg-black/30 border border-white/5 rounded-xl p-4 text-center">
-                <div className="text-3xl font-bold text-sun-green mb-1">{stat.num}</div>
+              <div key={i} className="bg-black/30 border border-white/5 rounded-xl p-3 md:p-4 text-center">
+                <div className="text-xl md:text-3xl font-bold text-sun-green mb-1">{stat.num}</div>
                 <div className="text-xs text-gray-500 uppercase tracking-wider">{stat.label}</div>
               </div>
             ))}
@@ -104,13 +104,13 @@ const InfoCenter = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="glass-panel p-8 rounded-2xl hover:border-sun-green/30 transition-all duration-300">
+          <div className="glass-panel p-5 md:p-8 rounded-2xl hover:border-sun-green/30 transition-all duration-300">
             <h3 className="text-lg font-bold text-sun-green mb-3">🔋 DC → AC Dönüşümü</h3>
             <p className="text-gray-400 leading-relaxed text-sm">
               Paneller doğru akım (DC) üretir. İnvertör (evirici) cihazı bu akımı evlerde ve işletmelerde kullanılan alternatif akıma (AC) dönüştürür. Modern inverterler %96-98 dönüşüm verimliliği sağlar.
             </p>
           </div>
-          <div className="glass-panel p-8 rounded-2xl hover:border-brand-blue/30 transition-all duration-300">
+          <div className="glass-panel p-5 md:p-8 rounded-2xl hover:border-brand-blue/30 transition-all duration-300">
             <h3 className="text-lg font-bold text-brand-blue mb-3">📡 Şebeke Bağlantısı</h3>
             <p className="text-gray-400 leading-relaxed text-sm">
               Üretilen fazla enerji elektrik şebekesine satılabilir. Türkiye'de "net metering" (mahsuplaşma) sistemi ile tükettiğinizden fazla ürettiğiniz enerji faturanızdan düşülür veya size ödenir.
@@ -144,13 +144,13 @@ const InfoCenter = () => {
               Birden fazla silikon kristalinden üretilir. Verimliliği %15-17 arasındadır. Mavimsi renkte olup mono panellere göre daha ekonomiktir. Geniş arsa alanı olan projeler için maliyet-performans dengesi açısından tercih edilir.
             </p>
           </div>
-          <div className="glass-panel p-8 rounded-2xl hover:bg-black/60 transition-all group">
+          <div className="glass-panel p-5 md:p-8 rounded-2xl hover:bg-black/60 transition-all group">
             <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2 group-hover:text-amber-400 transition-colors">▭ İnce Film (Thin-Film)</h3>
             <p className="text-gray-400 leading-relaxed text-sm">
               Esnek ve hafif yapısı ile eğimli veya düzensiz yüzeylere uygulanabilir. Verimliliği %10-13 ile daha düşüktür ancak bulutlu havalarda performansı stabildir. Büyük endüstriyel ve BIPV uygulamalarında kullanılır.
             </p>
           </div>
-          <div className="glass-panel p-8 rounded-2xl hover:bg-black/60 transition-all group">
+          <div className="glass-panel p-5 md:p-8 rounded-2xl hover:bg-black/60 transition-all group">
             <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2 group-hover:text-purple-400 transition-colors">⊞ Bifacial (Çift Yüzlü)</h3>
             <p className="text-gray-400 leading-relaxed text-sm">
               Hem ön hem arka yüzeyinden ışık alan yeni nesil panellerdir. Arka taraftan yansıyan ışığı da toplayarak toplam verimi %10-30 artırabilir. Açık renkli zeminler üzerinde kurulduğunda yüksek performans gösterir.
@@ -178,36 +178,36 @@ const InfoCenter = () => {
           </div>
         </div>
 
-        <div className="glass-panel p-8 rounded-2xl mb-6 overflow-x-auto">
+        <div className="glass-panel p-4 md:p-8 rounded-2xl mb-6 overflow-x-auto">
           <h3 className="text-lg font-bold text-white mb-6">📅 Periyodik Bakım Takvimi</h3>
           <table className="w-full text-left text-sm text-gray-400">
             <thead className="text-xs text-gray-500 uppercase bg-black/40">
               <tr>
-                <th className="px-6 py-4 rounded-tl-xl border-b border-white/5">İşlem</th>
-                <th className="px-6 py-4 border-b border-white/5">Sıklık</th>
-                <th className="px-6 py-4 rounded-tr-xl border-b border-white/5">Detay</th>
+                <th className="px-3 md:px-6 py-3 md:py-4 rounded-tl-xl border-b border-white/5 whitespace-nowrap">İşlem</th>
+                <th className="px-3 md:px-6 py-3 md:py-4 border-b border-white/5 whitespace-nowrap">Sıklık</th>
+                <th className="px-3 md:px-6 py-3 md:py-4 rounded-tr-xl border-b border-white/5">Detay</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               <tr className="hover:bg-white/5 transition-colors">
-                <td className="px-6 py-4 font-medium text-white">Görsel Kontrol</td>
-                <td className="px-6 py-4"><span className="px-3 py-1 bg-sun-green/10 text-sun-green rounded-full text-xs font-semibold">Aylık</span></td>
-                <td className="px-6 py-4">Panel yüzeyinde çatlak, kir birikimi, kablo gevşeme kontrolü.</td>
+                <td className="px-3 md:px-6 py-3 md:py-4 font-medium text-white whitespace-nowrap">Görsel Kontrol</td>
+                <td className="px-3 md:px-6 py-3 md:py-4"><span className="px-3 py-1 bg-sun-green/10 text-sun-green rounded-full text-xs font-semibold">Aylık</span></td>
+                <td className="px-3 md:px-6 py-3 md:py-4">Panel yüzeyinde çatlak, kir birikimi, kablo gevşeme kontrolü.</td>
               </tr>
               <tr className="hover:bg-white/5 transition-colors">
-                <td className="px-6 py-4 font-medium text-white">Genel Temizlik</td>
-                <td className="px-6 py-4"><span className="px-3 py-1 bg-brand-blue/10 text-brand-blue rounded-full text-xs font-semibold">3 Ayda Bir</span></td>
-                <td className="px-6 py-4">Yumuşak fırça ve su ile silme. Kimyasal deterjan kullanılmamalıdır.</td>
+                <td className="px-3 md:px-6 py-3 md:py-4 font-medium text-white whitespace-nowrap">Genel Temizlik</td>
+                <td className="px-3 md:px-6 py-3 md:py-4"><span className="px-3 py-1 bg-brand-blue/10 text-brand-blue rounded-full text-xs font-semibold">3 Ayda Bir</span></td>
+                <td className="px-3 md:px-6 py-3 md:py-4">Yumuşak fırça ve su ile silme. Kimyasal deterjan kullanılmamalıdır.</td>
               </tr>
               <tr className="hover:bg-white/5 transition-colors">
-                <td className="px-6 py-4 font-medium text-white">Elektrik Bağlantı</td>
-                <td className="px-6 py-4"><span className="px-3 py-1 bg-amber-500/10 text-amber-500 rounded-full text-xs font-semibold">6 Ayda Bir</span></td>
-                <td className="px-6 py-4">Kablo, topraklama, sigorta kontrolü. Yetkili personelce yapılmalı.</td>
+                <td className="px-3 md:px-6 py-3 md:py-4 font-medium text-white whitespace-nowrap">Elektrik Bağlantı</td>
+                <td className="px-3 md:px-6 py-3 md:py-4"><span className="px-3 py-1 bg-amber-500/10 text-amber-500 rounded-full text-xs font-semibold">6 Ayda Bir</span></td>
+                <td className="px-3 md:px-6 py-3 md:py-4">Kablo, topraklama, sigorta kontrolü. Yetkili personelce yapılmalı.</td>
               </tr>
               <tr className="hover:bg-white/5 transition-colors">
-                <td className="px-6 py-4 font-medium text-white">Profesyonel Bakım</td>
-                <td className="px-6 py-4"><span className="px-3 py-1 bg-red-500/10 text-red-400 rounded-full text-xs font-semibold">Yıllık</span></td>
-                <td className="px-6 py-4">Termal kamera ile tarama, IV eğrisi ölçümü, izolasyon testi.</td>
+                <td className="px-3 md:px-6 py-3 md:py-4 font-medium text-white whitespace-nowrap">Profesyonel Bakım</td>
+                <td className="px-3 md:px-6 py-3 md:py-4"><span className="px-3 py-1 bg-red-500/10 text-red-400 rounded-full text-xs font-semibold">Yıllık</span></td>
+                <td className="px-3 md:px-6 py-3 md:py-4">Termal kamera ile tarama, IV eğrisi ölçümü, izolasyon testi.</td>
               </tr>
             </tbody>
           </table>
@@ -323,11 +323,11 @@ const InfoCenter = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="glass-panel p-8 rounded-2xl text-center">
-            <div className="text-5xl font-extrabold text-sun-green mb-2">900<span className="text-2xl font-medium text-gray-400">kg</span></div>
+            <div className="text-3xl md:text-5xl font-extrabold text-sun-green mb-2">900<span className="text-xl md:text-2xl font-medium text-gray-400">kg</span></div>
             <p className="text-sm text-gray-400 uppercase tracking-widest font-semibold">CO₂ / kWp / Yıl Tasarruf</p>
           </div>
           <div className="glass-panel p-8 rounded-2xl text-center">
-            <div className="text-5xl font-extrabold text-sun-green mb-2">%95</div>
+            <div className="text-3xl md:text-5xl font-extrabold text-sun-green mb-2">%95</div>
             <p className="text-sm text-gray-400 uppercase tracking-widest font-semibold">Geri Dönüştürülebilir Oran</p>
           </div>
         </div>

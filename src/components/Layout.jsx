@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Map, ShoppingCart, Sun, Bell, LogOut, User, Settings, Moon, Sun as SunIcon, X, ShieldCheck, Wallet, ArrowDownToLine, ArrowUpFromLine, Building2, CreditCard, CheckCircle2 } from 'lucide-react';
+import { LayoutDashboard, Map, ShoppingCart, Sun, Bell, LogOut, User, Settings, Moon, Sun as SunIcon, X, ShieldCheck, Wallet, ArrowDownToLine, ArrowUpFromLine, Building2, CreditCard, CheckCircle2, Menu } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { supabase } from '../lib/supabase';
@@ -15,6 +15,7 @@ function Layout({ role, user, onLogout, userFullName }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isLightTheme, setIsLightTheme] = useState(false);
   
   const [newPassword, setNewPassword] = useState('');
@@ -146,19 +147,19 @@ function Layout({ role, user, onLogout, userFullName }) {
       {/* Floating Pill Navigation */}
       <div className="fixed top-6 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
         <nav className={cn(
-          "glass-pill rounded-full px-2 py-2 flex items-center gap-1 transition-all duration-500 pointer-events-auto relative",
+          "glass-pill rounded-full px-2 py-2 flex items-center gap-1 transition-all duration-500 pointer-events-auto relative w-full md:w-auto",
           scrolled ? "py-1 shadow-2xl bg-black/60" : "py-2"
         )}>
           {/* Logo Section */}
-          <div className="flex items-center px-4 pr-6 border-r border-white/10">
-            <Sun className={cn("h-6 w-6 mr-2 animate-pulse-slow", accentColor)} />
-            <span className="font-bold text-lg tracking-wide text-white">
+          <div className="flex items-center px-3 md:px-4 pr-4 md:pr-6 border-r border-white/10">
+            <Sun className={cn("h-5 w-5 md:h-6 md:w-6 mr-2 animate-pulse-slow", accentColor)} />
+            <span className="font-bold text-base md:text-lg tracking-wide text-white">
               SUN<span className={accentColor}>SHARE</span>
             </span>
           </div>
 
-          {/* Links */}
-          <div className="flex items-center px-2 gap-1">
+          {/* Desktop Links */}
+          <div className="hidden md:flex items-center px-2 gap-1">
             {navItems.map((item) => (
               <NavLink
                 key={item.name}
@@ -179,17 +180,17 @@ function Layout({ role, user, onLogout, userFullName }) {
           </div>
 
           {/* User Profile & Actions */}
-          <div className="flex items-center pl-4 pr-2 border-l border-white/10 gap-2 relative">
+          <div className="flex items-center pl-2 md:pl-4 pr-2 border-l border-white/10 gap-1 md:gap-2 relative ml-auto">
             
             {/* Notifications */}
             <div className="relative">
               <button 
                 onClick={() => { setShowNotifications(!showNotifications); setShowProfileMenu(false); }}
-                className={cn("p-2.5 rounded-full transition-colors relative", showNotifications ? "text-white bg-white/10" : "text-gray-400 hover:text-white hover:bg-white/5")}
+                className={cn("p-2 md:p-2.5 rounded-full transition-colors relative", showNotifications ? "text-white bg-white/10" : "text-gray-400 hover:text-white hover:bg-white/5")}
               >
                 <Bell className="h-4 w-4" />
-                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
-                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full"></span>
+                <span className="absolute top-2 md:top-2.5 right-2 md:right-2.5 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+                <span className="absolute top-2 md:top-2.5 right-2 md:right-2.5 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
 
               {/* Notification Dropdown */}
@@ -206,11 +207,11 @@ function Layout({ role, user, onLogout, userFullName }) {
               )}
             </div>
 
-            <div className="h-8 w-px bg-white/10 mx-1"></div>
+            <div className="h-8 w-px bg-white/10 mx-0.5 md:mx-1 hidden md:block"></div>
 
             {/* Quick Balance Display */}
             {isInvestor && (
-              <div className="hidden md:flex items-center px-3 py-1.5 mr-1 bg-sun-green/10 border border-sun-green/20 rounded-full">
+              <div className="hidden lg:flex items-center px-3 py-1.5 mr-1 bg-sun-green/10 border border-sun-green/20 rounded-full">
                 <Wallet className="w-4 h-4 text-sun-green mr-2" />
                 {balanceLoaded ? (
                   <span className="text-sun-green font-bold text-sm drop-shadow-md">
@@ -227,12 +228,12 @@ function Layout({ role, user, onLogout, userFullName }) {
               <button 
                 onClick={() => { setShowProfileMenu(!showProfileMenu); setShowNotifications(false); }}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-1.5 rounded-full transition-all",
+                  "flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 rounded-full transition-all",
                   showProfileMenu ? "bg-white/10 text-white" : "text-gray-300 hover:text-white hover:bg-white/5"
                 )}
               >
-                <div className={cn("flex items-center justify-center h-8 w-8 rounded-full border border-white/10", bgActive, accentColor)}>
-                  <User className="h-4 w-4" />
+                <div className={cn("flex items-center justify-center h-7 w-7 md:h-8 md:w-8 rounded-full border border-white/10", bgActive, accentColor)}>
+                  <User className="h-3.5 w-3.5 md:h-4 md:w-4" />
                 </div>
                 <span className="text-sm font-bold hidden md:block max-w-[100px] truncate">{userFullName || 'Kullanıcı'}</span>
               </button>
@@ -278,12 +279,66 @@ function Layout({ role, user, onLogout, userFullName }) {
               )}
             </div>
 
+            {/* Mobile Hamburger */}
+            <button 
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="md:hidden p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+            >
+              {showMobileMenu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+
           </div>
         </nav>
       </div>
 
+      {/* Mobile Navigation Drawer */}
+      {showMobileMenu && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMobileMenu(false)}></div>
+          <div className="absolute top-20 left-4 right-4 bg-black/95 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl p-4 animate-in fade-in slide-in-from-top-4 duration-200 z-50">
+            {/* Mobile Balance */}
+            {isInvestor && (
+              <div className="flex items-center justify-between px-4 py-3 mb-3 bg-sun-green/10 border border-sun-green/20 rounded-2xl">
+                <div className="flex items-center">
+                  <Wallet className="w-5 h-5 text-sun-green mr-3" />
+                  <span className="text-white text-sm font-medium">Bakiye</span>
+                </div>
+                {balanceLoaded ? (
+                  <span className="text-sun-green font-bold text-lg">
+                    ${balance.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                  </span>
+                ) : (
+                  <span className="w-16 h-5 bg-sun-green/20 rounded animate-pulse inline-block" />
+                )}
+              </div>
+            )}
+            {/* Mobile Nav Links */}
+            <div className="space-y-1">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.name}
+                  to={item.path}
+                  onClick={() => setShowMobileMenu(false)}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center px-4 py-3 rounded-2xl transition-all text-base font-medium",
+                      isActive 
+                        ? `${bgActive} ${accentColor}` 
+                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                    )
+                  }
+                >
+                  <item.icon className="h-5 w-5 mr-3" />
+                  {item.name}
+                </NavLink>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
-      <main className="flex-1 pt-32 pb-12 px-6 max-w-7xl mx-auto w-full relative z-10">
+      <main className="flex-1 pt-24 md:pt-32 pb-8 md:pb-12 px-4 md:px-6 max-w-7xl mx-auto w-full relative z-10">
         <Outlet context={{ balance, setBalance, user }} />
       </main>
 

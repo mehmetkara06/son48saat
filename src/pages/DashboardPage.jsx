@@ -38,26 +38,26 @@ const chartDataSets = {
 };
 
 const StatCard = ({ title, value, subtext, icon: Icon, trend }) => (
-  <div className="glass-panel p-6 rounded-3xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+  <div className="glass-panel p-4 md:p-6 rounded-2xl md:rounded-3xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
     <div className="absolute top-0 right-0 p-6 opacity-5 transform translate-x-4 -translate-y-4 group-hover:scale-125 transition-transform duration-700">
-      <Icon className="w-32 h-32 text-sun-green" />
+      <Icon className="w-20 md:w-32 h-20 md:h-32 text-sun-green" />
     </div>
     <div className="flex items-start justify-between relative z-10">
-      <div>
-        <p className="text-gray-400 text-sm font-medium tracking-wide">{title}</p>
-        <h3 className="text-4xl font-extrabold text-white mt-2 tracking-tight">{value}</h3>
-        {subtext && <p className="text-sun-green text-sm mt-1.5 font-semibold drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]">{subtext}</p>}
+      <div className="min-w-0 flex-1">
+        <p className="text-gray-400 text-xs md:text-sm font-medium tracking-wide truncate">{title}</p>
+        <h3 className="text-xl md:text-4xl font-extrabold text-white mt-1 md:mt-2 tracking-tight truncate">{value}</h3>
+        {subtext && <p className="text-sun-green text-xs md:text-sm mt-1 md:mt-1.5 font-semibold drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]">{subtext}</p>}
       </div>
-      <div className="p-3 bg-white/5 border border-white/10 rounded-2xl text-sun-green shadow-lg">
-        <Icon className="w-6 h-6" />
+      <div className="p-2 md:p-3 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl text-sun-green shadow-lg ml-2 flex-shrink-0">
+        <Icon className="w-4 h-4 md:w-6 md:h-6" />
       </div>
     </div>
-    <div className="mt-6 flex items-center text-sm relative z-10">
+    <div className="mt-3 md:mt-6 flex items-center text-sm relative z-10">
       <div className="flex items-center px-2 py-1 rounded-full bg-sun-green/10 border border-sun-green/20">
         <TrendingUp className="w-3 h-3 text-sun-green mr-1" />
         <span className="text-sun-green font-bold text-xs">{trend}</span>
       </div>
-      <span className="text-gray-500 ml-3 text-xs font-medium uppercase tracking-wider">Geçen aya göre</span>
+      <span className="text-gray-500 ml-2 md:ml-3 text-[10px] md:text-xs font-medium uppercase tracking-wider hidden sm:inline">Geçen aya göre</span>
     </div>
   </div>
 );
@@ -247,13 +247,13 @@ function DashboardPage() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 relative">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">Portföy Özeti</h1>
-          <p className="text-gray-400 mt-2 text-lg font-light">Yatırımlarınızın anlık durumunu ve getirilerini takip edin.</p>
+          <h1 className="text-2xl md:text-4xl font-bold text-white tracking-tight">Portföy Özeti</h1>
+          <p className="text-gray-400 mt-1 md:mt-2 text-sm md:text-lg font-light">Yatırımlarınızın anlık durumunu ve getirilerini takip edin.</p>
         </div>
 
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
         <StatCard title="Cüzdan Bakiyesi" value={`$${balance.toLocaleString('en-US', { maximumFractionDigits: 0 })}`} icon={Wallet} trend="Kullanılabilir" />
         <StatCard title="Yatırım Değeri" value={`$${projects.reduce((acc, p) => acc + parseFloat(p.value.replace(/[^0-9.-]+/g,"") || 0), 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}`} icon={Activity} trend="Portföy" />
         <StatCard title="Üretilen Enerji" value="45.2 MWh" icon={Zap} trend="+8.2%" />
@@ -261,9 +261,9 @@ function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 glass-panel p-8 rounded-3xl flex flex-col">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
-            <h2 className="text-xl font-bold text-white flex items-center">
+        <div className="lg:col-span-2 glass-panel p-4 md:p-8 rounded-3xl flex flex-col">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-8 gap-3 md:gap-4">
+            <h2 className="text-base md:text-xl font-bold text-white flex items-center">
               <Activity className="w-5 h-5 mr-3 text-sun-green" />
               Getiri Analizi
             </h2>
@@ -278,7 +278,7 @@ function DashboardPage() {
                 <button
                   key={tf.id}
                   onClick={() => setTimeframe(tf.id)}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 ${timeframe === tf.id ? 'bg-sun-green text-black shadow-lg scale-105' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                  className={`px-3 md:px-4 py-1.5 rounded-lg text-xs md:text-sm font-medium transition-all duration-300 ${timeframe === tf.id ? 'bg-sun-green text-black shadow-lg scale-105' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                 >
                   {tf.label}
                 </button>
@@ -286,7 +286,7 @@ function DashboardPage() {
             </div>
           </div>
 
-          <div className="h-80 w-full flex-1">
+          <div className="h-52 md:h-80 w-full flex-1">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartDataSets[timeframe]}>
                 <defs>
@@ -296,8 +296,8 @@ function DashboardPage() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" vertical={false} />
-                <XAxis dataKey="name" stroke="#6b7280" tick={{fill: '#6b7280', fontSize: 12}} axisLine={false} tickLine={false} tickMargin={10} />
-                <YAxis stroke="#6b7280" tick={{fill: '#6b7280', fontSize: 12}} axisLine={false} tickLine={false} tickFormatter={(value) => `$${value}`} />
+                <XAxis dataKey="name" stroke="#6b7280" tick={{fill: '#6b7280', fontSize: 10}} axisLine={false} tickLine={false} tickMargin={8} />
+                <YAxis stroke="#6b7280" tick={{fill: '#6b7280', fontSize: 10}} axisLine={false} tickLine={false} tickFormatter={(value) => `$${value}`} width={45} />
                 <Tooltip 
                   contentStyle={{ backgroundColor: 'rgba(5,5,5,0.8)', backdropFilter: 'blur(12px)', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}
                   itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
@@ -308,14 +308,14 @@ function DashboardPage() {
           </div>
         </div>
 
-        <div className="glass-panel p-8 rounded-3xl">
-          <h2 className="text-xl font-bold text-white mb-6">Varlık Dağılımı</h2>
+        <div className="glass-panel p-4 md:p-8 rounded-3xl">
+          <h2 className="text-base md:text-xl font-bold text-white mb-4 md:mb-6">Varlık Dağılımı</h2>
           <div className="space-y-4">
             {projects.map((project, i) => (
               <div 
                 key={i} 
                 onClick={() => setExpandedAsset(expandedAsset === i ? null : i)}
-                className={`p-5 rounded-2xl border transition-all group cursor-pointer ${expandedAsset === i ? 'bg-white/[0.05] border-white/20 shadow-[0_8px_30px_rgb(0,0,0,0.5)]' : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04]'}`}
+                className={`p-3 md:p-5 rounded-2xl border transition-all group cursor-pointer ${expandedAsset === i ? 'bg-white/[0.05] border-white/20 shadow-[0_8px_30px_rgb(0,0,0,0.5)]' : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04]'}`}
               >
                 <div className="flex justify-between items-start mb-3">
                   <h4 className="font-semibold text-white group-hover:text-sun-green transition-colors">{project.name}</h4>
