@@ -22,14 +22,43 @@ function Layout({ role, user, onLogout, userFullName }) {
   const [passwordError, setPasswordError] = useState('');
 
   // Wallet States
-  const [balance, setBalance] = useState(() => {
-    const saved = localStorage.getItem('sunshare_balance');
-    return saved !== null ? parseFloat(saved) : 12450.00;
-  });
+  const [balance, setBalanceState] = useState(12450.00);
+  const [balanceLoaded, setBalanceLoaded] = useState(false);
 
+  // Supabase'den bakiyeyi oku
   useEffect(() => {
-    localStorage.setItem('sunshare_balance', balance.toString());
-  }, [balance]);
+    if (!user) return;
+    const fetchBalance = async () => {
+      const { data, error } = await supabase
+        .from('user_wallets')
+        .select('balance')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code === 'PGRST116') {
+        // Kayıt yok, ilk girişte oluştur
+        await supabase.from('user_wallets').insert({ user_id: user.id, balance: 12450.00 });
+        setBalanceState(12450.00);
+      } else if (!error && data) {
+        setBalanceState(parseFloat(data.balance));
+      }
+      setBalanceLoaded(true);
+    };
+    fetchBalance();
+  }, [user]);
+
+  // Bakiye değiştiğinde Supabase'e kaydet
+  const setBalance = async (updater) => {
+    setBalanceState(prev => {
+      const newVal = typeof updater === 'function' ? updater(prev) : updater;
+      if (user) {
+        supabase.from('user_wallets')
+          .upsert({ user_id: user.id, balance: newVal, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('Bakiye kaydedilemedi:', error); });
+      }
+      return newVal;
+    });
+  };
   const [showWalletModal, setShowWalletModal] = useState(false);
   const [walletTab, setWalletTab] = useState('deposit'); // 'deposit' | 'withdraw'
   const [walletMethod, setWalletMethod] = useState('card'); // 'iban' | 'card'
@@ -183,9 +212,13 @@ function Layout({ role, user, onLogout, userFullName }) {
             {isInvestor && (
               <div className="hidden md:flex items-center px-3 py-1.5 mr-1 bg-sun-green/10 border border-sun-green/20 rounded-full">
                 <Wallet className="w-4 h-4 text-sun-green mr-2" />
-                <span className="text-sun-green font-bold text-sm drop-shadow-md">
-                  ${balance.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-                </span>
+                {balanceLoaded ? (
+                  <span className="text-sun-green font-bold text-sm drop-shadow-md">
+                    ${balance.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                  </span>
+                ) : (
+                  <span className="w-16 h-4 bg-sun-green/20 rounded animate-pulse inline-block" />
+                )}
               </div>
             )}
 
