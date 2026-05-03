@@ -317,11 +317,11 @@ function MarketplacePage() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 relative">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">Yatırım Fırsatları</h1>
-          <p className="text-gray-400 mt-2 text-lg font-light mb-4">Onaylanmış sürdürülebilir enerji projelerine dijital hisselerle ortak olun.</p>
+          <h1 className="text-2xl md:text-4xl font-bold text-white tracking-tight">Yatırım Fırsatları</h1>
+          <p className="text-gray-400 mt-1 md:mt-2 text-sm md:text-lg font-light mb-3 md:mb-4">Onaylanmış sürdürülebilir enerji projelerine dijital hisselerle ortak olun.</p>
           <div className="inline-flex items-center bg-brand-blue/10 border border-brand-blue/20 px-3 py-1.5 rounded-lg shadow-sm">
             <Info className="w-4 h-4 text-brand-blue mr-2 flex-shrink-0" />
-            <span className="text-sm text-gray-300">SunShare platform sağlayıcı olarak yapılan yatırımlardan <strong className="text-white">%2 işlem komisyonu</strong> almaktadır.</span>
+            <span className="text-xs md:text-sm text-gray-300">SunShare platform sağlayıcı olarak yapılan yatırımlardan <strong className="text-white">%2 işlem komisyonu</strong> almaktadır.</span>
           </div>
         </div>
         
@@ -365,7 +365,7 @@ function MarketplacePage() {
           <p className="text-gray-400 text-center">Aradığınız kritere ("{searchQuery}") uygun aktif proje bulunmamaktadır.<br/>Lütfen başka bir anahtar kelime deneyin.</p>
         </div>
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pt-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 pt-4">
           {filteredProjects.map(project => (
             <div key={project.id} className="relative group rounded-[2rem] bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.15)] overflow-hidden flex flex-col">
               

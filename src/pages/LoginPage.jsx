@@ -70,7 +70,7 @@ function LoginPage() {
   const isAnyFormActive = investorForm || ownerForm;
 
   return (
-    <div className="min-h-screen bg-black text-sun-text flex flex-col p-6 relative overflow-y-auto overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-black text-sun-text flex flex-col p-3 md:p-6 relative overflow-y-auto overflow-x-hidden font-sans">
       
       {/* Background Image & Overlay */}
       <div 
@@ -84,7 +84,7 @@ function LoginPage() {
       <div className="fixed top-1/2 right-1/4 transform translate-x-1/4 -translate-y-1/2 w-[50vw] h-[50vw] bg-brand-blue/10 rounded-full blur-[120px] pointer-events-none mix-blend-screen animate-pulse-slow z-0" style={{animationDelay: '2s'}}></div>
 
       {/* Header */}
-      <div className={`text-center mt-8 mb-10 relative z-10 transition-all duration-700 ease-in-out ${isAnyFormActive ? 'transform scale-90 opacity-80' : 'animate-in fade-in slide-in-from-top-10'}`}>
+      <div className={`text-center mt-4 md:mt-8 mb-6 md:mb-10 relative z-10 transition-all duration-700 ease-in-out ${isAnyFormActive ? 'transform scale-90 opacity-80' : 'animate-in fade-in slide-in-from-top-10'}`}>
         
         {/* Scrolling Text Marquee (Seamless Loop) */}
         <div className="w-full overflow-hidden mb-8 py-2 border-y border-white/5 bg-sun-green/5 backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.05)] flex items-center group">
@@ -97,7 +97,7 @@ function LoginPage() {
         </div>
 
         <div className="flex items-center justify-center mb-4">
-          <Sun className="h-12 w-12 text-sun-green animate-float mr-3 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
+          <Sun className="h-8 w-8 md:h-12 md:w-12 text-sun-green animate-float mr-2 md:mr-3 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
           <h1 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight drop-shadow-lg">
             SUN<span className="text-transparent bg-clip-text bg-gradient-to-r from-sun-green to-emerald-300">SHARE</span>
           </h1>
@@ -115,8 +115,8 @@ function LoginPage() {
             ${ownerForm 
               ? 'w-0 max-w-0 opacity-0 p-0 m-0 border-0 scale-75' 
               : (investorForm 
-                  ? 'w-full md:w-[600px] flex-none p-8 ring-2 ring-sun-green/30 shadow-[0_0_40px_-10px_rgba(16,185,129,0.3)] scale-[1.02] -translate-y-2' 
-                  : 'w-full flex-1 p-8 hover:border-sun-green/40 hover:shadow-[0_0_40px_-10px_rgba(16,185,129,0.2)] hover:-translate-y-1'
+                   ? 'w-full md:w-[600px] flex-none p-5 md:p-8 ring-2 ring-sun-green/30 shadow-[0_0_40px_-10px_rgba(16,185,129,0.3)] scale-[1.02] -translate-y-2' 
+                   : 'w-full flex-1 p-5 md:p-8 hover:border-sun-green/40 hover:shadow-[0_0_40px_-10px_rgba(16,185,129,0.2)] hover:-translate-y-1'
                 )
             }`}
           >
@@ -125,12 +125,12 @@ function LoginPage() {
               <div className={`absolute inset-0 bg-gradient-to-br from-sun-green/10 to-transparent transition-opacity duration-700 ${investorForm ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}></div>
               
               <div className="flex items-center mb-4 relative z-10">
-                <div className="w-16 h-16 flex-shrink-0 bg-gradient-to-br from-sun-dark to-gray-900 border border-sun-green/30 rounded-2xl flex items-center justify-center mr-5 shadow-[0_0_20px_rgba(16,185,129,0.15)] group-hover:scale-105 transition-transform duration-500">
-                  <Wallet className="w-8 h-8 text-sun-green" />
+                <div className="w-12 h-12 md:w-16 md:h-16 flex-shrink-0 bg-gradient-to-br from-sun-dark to-gray-900 border border-sun-green/30 rounded-xl md:rounded-2xl flex items-center justify-center mr-3 md:mr-5 shadow-[0_0_20px_rgba(16,185,129,0.15)] group-hover:scale-105 transition-transform duration-500">
+                  <Wallet className="w-6 h-6 md:w-8 md:h-8 text-sun-green" />
                 </div>
                 <div>
-                  <h2 className="text-3xl font-bold text-white tracking-wide whitespace-nowrap">Yatırım Yap</h2>
-                  <p className="text-gray-400 text-base mt-1 line-clamp-2">Portföyünüzü büyütün, gelir elde edin.</p>
+                  <h2 className="text-xl md:text-3xl font-bold text-white tracking-wide whitespace-nowrap">Yatırım Yap</h2>
+                  <p className="text-gray-400 text-sm md:text-base mt-1 line-clamp-2">Portföyünüzü büyütün, gelir elde edin.</p>
                 </div>
               </div>
               
@@ -185,8 +185,8 @@ function LoginPage() {
             ${investorForm 
               ? 'w-0 max-w-0 opacity-0 p-0 m-0 border-0 scale-75' 
               : (ownerForm 
-                  ? 'w-full md:w-[600px] flex-none p-8 ring-2 ring-brand-blue/30 shadow-[0_0_40px_-10px_rgba(59,130,246,0.3)] scale-[1.02] -translate-y-2' 
-                  : 'w-full flex-1 p-8 hover:border-brand-blue/40 hover:shadow-[0_0_40px_-10px_rgba(59,130,246,0.2)] hover:-translate-y-1'
+                   ? 'w-full md:w-[600px] flex-none p-5 md:p-8 ring-2 ring-brand-blue/30 shadow-[0_0_40px_-10px_rgba(59,130,246,0.3)] scale-[1.02] -translate-y-2' 
+                   : 'w-full flex-1 p-5 md:p-8 hover:border-brand-blue/40 hover:shadow-[0_0_40px_-10px_rgba(59,130,246,0.2)] hover:-translate-y-1'
                 )
             }`}
           >
@@ -195,12 +195,12 @@ function LoginPage() {
               <div className={`absolute inset-0 bg-gradient-to-br from-brand-blue/10 to-transparent transition-opacity duration-700 ${ownerForm ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}></div>
               
               <div className="flex items-center mb-4 relative z-10">
-                <div className="w-16 h-16 flex-shrink-0 bg-gradient-to-br from-sun-dark to-gray-900 border border-brand-blue/30 rounded-2xl flex items-center justify-center mr-5 shadow-[0_0_20px_rgba(59,130,246,0.15)] group-hover:scale-105 transition-transform duration-500">
-                  <HardHat className="w-8 h-8 text-brand-blue" />
+                <div className="w-12 h-12 md:w-16 md:h-16 flex-shrink-0 bg-gradient-to-br from-sun-dark to-gray-900 border border-brand-blue/30 rounded-xl md:rounded-2xl flex items-center justify-center mr-3 md:mr-5 shadow-[0_0_20px_rgba(59,130,246,0.15)] group-hover:scale-105 transition-transform duration-500">
+                  <HardHat className="w-6 h-6 md:w-8 md:h-8 text-brand-blue" />
                 </div>
                 <div>
-                  <h2 className="text-3xl font-bold text-white tracking-wide whitespace-nowrap">Alanını Değerlendir</h2>
-                  <p className="text-gray-400 text-base mt-1 line-clamp-2">Projenizi oluşturun, fonlamaya açın.</p>
+                  <h2 className="text-xl md:text-3xl font-bold text-white tracking-wide whitespace-nowrap">Alanını Değerlendir</h2>
+                  <p className="text-gray-400 text-sm md:text-base mt-1 line-clamp-2">Projenizi oluşturun, fonlamaya açın.</p>
                 </div>
               </div>
               
@@ -252,21 +252,21 @@ function LoginPage() {
         </div>
 
         {/* Informational Section - BOTTOM (Fades out and shrinks when a form is active) */}
-        <div className={`transition-all duration-700 ease-in-out transform origin-top flex flex-col ${isAnyFormActive ? 'opacity-0 h-0 max-h-0 overflow-hidden m-0 p-0 scale-95 border-0' : 'opacity-100 max-h-[1000px] glass-panel p-10 rounded-3xl animate-in fade-in slide-in-from-bottom-10 delay-500 shadow-2xl backdrop-blur-xl border border-white/10 scale-100'}`}>
-          <h2 className="text-3xl font-bold text-white mb-6 flex items-center border-b border-white/10 pb-4">
-            <Info className="w-8 h-8 text-sun-green mr-3" /> SunShare Ekosistemi
+        <div className={`transition-all duration-700 ease-in-out transform origin-top flex flex-col ${isAnyFormActive ? 'opacity-0 h-0 max-h-0 overflow-hidden m-0 p-0 scale-95 border-0' : 'opacity-100 max-h-[1000px] glass-panel p-5 md:p-10 rounded-3xl animate-in fade-in slide-in-from-bottom-10 delay-500 shadow-2xl backdrop-blur-xl border border-white/10 scale-100'}`}>
+          <h2 className="text-xl md:text-3xl font-bold text-white mb-4 md:mb-6 flex items-center border-b border-white/10 pb-3 md:pb-4">
+            <Info className="w-6 h-6 md:w-8 md:h-8 text-sun-green mr-2 md:mr-3 flex-shrink-0" /> SunShare Ekosistemi
           </h2>
           
           <div className="space-y-6">
-            <p className="text-gray-200 text-xl leading-relaxed font-light">
+            <p className="text-gray-200 text-base md:text-xl leading-relaxed font-light">
               SunShare, yenilenebilir enerji yatırımlarını tamamen demokratikleştiren, uydu verileri ve yapay zeka destekli yeni nesil bir <strong className="text-white font-medium">dijital kitle fonlama</strong> ve analiz platformudur. Geleneksel enerji yatırımlarının aksine, binlerce dolarlık başlangıç sermayesine ihtiyaç duymadan, dilediğiniz bütçeyle temiz enerji projelerine ortak olmanızı sağlar.
             </p>
             
-            <p className="text-gray-200 text-lg leading-relaxed font-light border-l-2 border-sun-green/50 pl-4 bg-sun-green/5 rounded-r-xl py-3">
+            <p className="text-gray-200 text-sm md:text-lg leading-relaxed font-light border-l-2 border-sun-green/50 pl-3 md:pl-4 bg-sun-green/5 rounded-r-xl py-2 md:py-3">
               Amacımız, küresel karbon ayak izini azaltırken yatırımcılara şeffaf, izlenebilir ve yüksek getirili bir portföy sunmaktır. Her bir güneş paneli, dijital olarak tokenize edilerek blokzincir altyapısında güvence altına alınır.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8 mt-6 md:mt-10">
               <div className="flex items-start group">
                 <div className="bg-gradient-to-br from-sun-green/20 to-emerald-500/10 p-3 rounded-xl mr-5 mt-1 border border-sun-green/20 group-hover:border-sun-green/50 transition-colors duration-500">
                   <Zap className="w-6 h-6 text-sun-green" />

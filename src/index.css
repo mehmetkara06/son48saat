@@ -10,6 +10,8 @@
       radial-gradient(circle at 15% 50%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
       radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.04) 0%, transparent 50%);
     background-attachment: fixed;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
   }
 }
 

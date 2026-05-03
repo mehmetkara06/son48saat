@@ -115,13 +115,13 @@ const myProjects = [
 ];
 
 const StatCard = ({ title, value, icon: Icon, subtitle, colorClass, tooltip }) => (
-  <div className="glass-panel p-6 rounded-3xl relative overflow-visible group/card hover:-translate-y-1 transition-transform duration-300">
+  <div className="glass-panel p-4 md:p-6 rounded-2xl md:rounded-3xl relative overflow-visible group/card hover:-translate-y-1 transition-transform duration-300">
     <div className={`absolute top-0 right-0 p-6 opacity-5 transform translate-x-4 -translate-y-4 group-hover/card:scale-125 transition-transform duration-700 ${colorClass}`}>
-      <Icon className="w-32 h-32" />
+      <Icon className="w-20 md:w-32 h-20 md:h-32" />
     </div>
     <div className="flex items-start justify-between relative z-10">
-      <div>
-        <div className="text-gray-400 text-sm font-medium tracking-wide flex items-center mb-2">
+      <div className="min-w-0 flex-1">
+        <div className="text-gray-400 text-xs md:text-sm font-medium tracking-wide flex items-center mb-1 md:mb-2">
           {title}
           {tooltip && (
             <div className="relative group/tooltip ml-2 flex items-center z-30">
@@ -132,13 +132,13 @@ const StatCard = ({ title, value, icon: Icon, subtitle, colorClass, tooltip }) =
             </div>
           )}
         </div>
-        <h3 className="text-4xl font-extrabold text-white tracking-tight">{value}</h3>
+        <h3 className="text-xl md:text-4xl font-extrabold text-white tracking-tight truncate">{value}</h3>
       </div>
-      <div className={`p-3 bg-white/5 border border-white/10 rounded-2xl shadow-lg ${colorClass}`}>
-        <Icon className="w-6 h-6" />
+      <div className={`p-2 md:p-3 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl shadow-lg ml-2 flex-shrink-0 ${colorClass}`}>
+        <Icon className="w-4 h-4 md:w-6 md:h-6" />
       </div>
     </div>
-    <div className="mt-6 text-sm text-gray-500 font-medium relative z-10">
+    <div className="mt-3 md:mt-6 text-xs md:text-sm text-gray-500 font-medium relative z-10 hidden sm:block">
       {subtitle}
     </div>
   </div>
@@ -261,8 +261,8 @@ function OwnerDashboardPage() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">Geliştirici Özeti</h1>
-          <p className="text-gray-400 mt-2 text-lg font-light">Projelerinizin fonlama durumunu ve güncel performansını yönetin.</p>
+          <h1 className="text-2xl md:text-4xl font-bold text-white tracking-tight">Geliştirici Özeti</h1>
+          <p className="text-gray-400 mt-1 md:mt-2 text-sm md:text-lg font-light">Projelerinizin fonlama durumunu ve güncel performansını yönetin.</p>
         </div>
         <Link 
           to="/analysis"
@@ -273,7 +273,7 @@ function OwnerDashboardPage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
         <StatCard title="Aktif Projeler" value="4" icon={Activity} subtitle="Yayında ve onay sürecinde" colorClass="text-brand-blue" />
         <StatCard 
           title="Toplam Kapasite" 
@@ -287,7 +287,7 @@ function OwnerDashboardPage() {
         <StatCard title="Yatırımcı Sayısı" value="238" icon={Users} subtitle="Ortak olan kişi sayısı" colorClass="text-purple-400" />
       </div>
 
-      <div className="glass-panel p-8 rounded-3xl mt-8">
+      <div className="glass-panel p-4 md:p-8 rounded-3xl mt-6 md:mt-8">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-xl font-bold text-white">Projelerim</h2>
           <button className="text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center">

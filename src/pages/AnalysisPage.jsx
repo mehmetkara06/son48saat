@@ -491,8 +491,8 @@ function AnalysisPage() {
     <div className="flex flex-col h-full gap-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
       
       <div className="mb-2">
-        <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">Yeni Proje Analizi</h1>
-        <p className="text-gray-400 mt-2 text-lg font-light">Uydu üzerinden arsa seçin, kapasite girin ve PVGIS destekli analiz raporunuzu oluşturun.</p>
+        <h1 className="text-2xl md:text-4xl font-bold text-white tracking-tight">Yeni Proje Analizi</h1>
+        <p className="text-gray-400 mt-1 md:mt-2 text-sm md:text-lg font-light">Uydu üzerinden arsa seçin, kapasite girin ve PVGIS destekli analiz raporunuzu oluşturun.</p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8 min-h-[550px]">
