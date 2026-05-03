@@ -122,15 +122,22 @@ function DashboardPage() {
       }
 
       try {
-        const { data, error } = await supabase
-          .from('user_investments')
-          .select('*')
-          .eq('user_id', user.id);
+        // Hem yatırımları hem de nakde çevrilen statik projeleri paralel çek
+        const [{ data: investData, error: investErr }, { data: walletData, error: walletErr }] = await Promise.all([
+          supabase.from('user_investments').select('*').eq('user_id', user.id),
+          supabase.from('user_wallets').select('withdrawn_projects').eq('user_id', user.id).single(),
+        ]);
 
-        if (error) throw error;
+        if (investErr) throw investErr;
 
-        // Dönüştürme + fonlama ilerlemesine göre otomatik durum
-        const purchased = (data || []).map(p => ({
+        // Nakde çevrilen statik proje isimleri
+        const withdrawnNames = walletData?.withdrawn_projects || [];
+
+        // Statik projeleri filtrele
+        const filteredStatic = staticProjects.filter(p => !withdrawnNames.includes(p.name));
+
+        // Pazar yeri yatırımlarını dönüştür
+        const purchased = (investData || []).map(p => ({
           id: p.id,
           name: p.project_snapshot?.name || 'Bilinmeyen Proje',
           share: 'Pazar Yeri',
@@ -158,7 +165,7 @@ function DashboardPage() {
           return acc;
         }, []);
 
-        const merged = [...staticProjects];
+        const merged = [...filteredStatic];
         groupedPurchased.forEach(p => {
           if (!merged.find(s => s.name === p.name)) merged.push(p);
         });
@@ -173,7 +180,6 @@ function DashboardPage() {
 
     fetchUserPortfolio();
 
-    // Sekme arası geçişlerde güncel kalsın
     const onFocus = () => fetchUserPortfolio();
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
@@ -187,15 +193,29 @@ function DashboardPage() {
     setWithdrawStatus('processing');
 
     try {
-      // Pazar yerinden alınan projelerse Supabase kaydını da sil
       if (project._fromMarket && user && project.id) {
+        // Pazar yeri yatırımı: Supabase kaydını sil
         const { error: deleteError } = await supabase
           .from('user_investments')
           .delete()
           .eq('user_id', user.id)
           .eq('id', project.id);
-
         if (deleteError) throw deleteError;
+      } else if (!project._fromMarket && user) {
+        // Statik proje: nakde çevrilen proje ismini user_wallets'a kaydet
+        const { data: walletData } = await supabase
+          .from('user_wallets')
+          .select('withdrawn_projects')
+          .eq('user_id', user.id)
+          .single();
+
+        const currentWithdrawn = walletData?.withdrawn_projects || [];
+        if (!currentWithdrawn.includes(project.name)) {
+          await supabase
+            .from('user_wallets')
+            .update({ withdrawn_projects: [...currentWithdrawn, project.name] })
+            .eq('user_id', user.id);
+        }
       }
 
       // Bakiyeyi güncelle
@@ -204,7 +224,6 @@ function DashboardPage() {
 
       setWithdrawStatus('success');
 
-      // 2.5 sn sonra listeden kaldır
       setTimeout(() => {
         setProjects(prev => prev.filter((_, i) => i !== index));
         setWithdrawStatus('idle');

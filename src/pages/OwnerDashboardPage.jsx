@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Target, TrendingUp, Users, Activity, Plus, ArrowRight, Info, MapPin, CheckCircle, FileText, X, Download } from 'lucide-react';
+import { Target, TrendingUp, Users, Activity, Plus, ArrowRight, Info, MapPin, CheckCircle, FileText, X, Download, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import html2pdf from 'html2pdf.js';
 import { useRef, useEffect } from 'react';
@@ -148,7 +148,25 @@ function OwnerDashboardPage() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [allProjects, setAllProjects] = useState(myProjects);
+  const [deletingProjectId, setDeletingProjectId] = useState(null);
   const modalRef = useRef(null);
+
+  const handleDeleteProject = async (e, project) => {
+    e.stopPropagation();
+    if (!confirm(`"${project.title}" projesini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`)) return;
+
+    setDeletingProjectId(project.id);
+    try {
+      const { error } = await supabase.from('projects').delete().eq('id', project.id);
+      if (error) throw error;
+      setAllProjects(prev => prev.filter(p => p.id !== project.id));
+    } catch (err) {
+      console.error('Proje silinemedi:', err);
+      alert('Proje silinirken bir hata oluştu: ' + err.message);
+    } finally {
+      setDeletingProjectId(null);
+    }
+  };
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -319,7 +337,18 @@ function OwnerDashboardPage() {
                 </div>
               </div>
               
-              <div className="mt-5 pt-5 border-t border-white/5 flex justify-end">
+              <div className="mt-5 pt-5 border-t border-white/5 flex justify-end gap-3">
+                {/* Sadece Supabase projeleri (UUID id) silinebilir */}
+                {typeof project.id === 'string' && project.id.includes('-') && (
+                  <button 
+                    onClick={(e) => handleDeleteProject(e, project)}
+                    disabled={deletingProjectId === project.id}
+                    className="px-5 py-2.5 bg-red-500/10 text-red-400 text-sm font-bold rounded-xl hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/40 transition-all flex items-center disabled:opacity-50"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    {deletingProjectId === project.id ? 'Siliniyor...' : 'Projeyi Sil'}
+                  </button>
+                )}
                 <button 
                   onClick={() => setSelectedProject(project)}
                   className="px-5 py-2.5 bg-brand-blue/10 text-brand-blue text-sm font-bold rounded-xl hover:bg-brand-blue/20 border border-brand-blue/20 hover:border-brand-blue/40 transition-all flex items-center shadow-lg"
