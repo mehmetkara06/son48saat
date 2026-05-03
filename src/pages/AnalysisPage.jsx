@@ -285,13 +285,25 @@ function AnalysisPage() {
   const resultsRef = useRef(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [projectName, setProjectName] = useState('');
+
+  const handlePublishClick = () => {
+    setProjectName(`Yeni ${form.investmentType.toUpperCase()} GES Projesi`);
+    setShowNameModal(true);
+  };
 
   const handlePublish = async () => {
+    if (!projectName.trim()) {
+      alert('Lütfen projeye bir isim verin.');
+      return;
+    }
+    setShowNameModal(false);
     setIsPublishing(true);
 
     try {
       const newProject = {
-        title: `Yeni ${form.investmentType.toUpperCase()} GES Projesi`,
+        title: projectName.trim(),
         location: addressName,
         coords: [position.lat, position.lng],
         capacity: `${form.capacity} kWp`,
@@ -755,7 +767,7 @@ function AnalysisPage() {
                 </button>
 
                 <button 
-                  onClick={handlePublish}
+                  onClick={handlePublishClick}
                   disabled={isDownloading || isPublishing}
                   className="px-6 py-3 bg-sun-green text-black font-extrabold rounded-xl hover:bg-emerald-400 transition-all duration-300 disabled:opacity-50 flex items-center shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] hover:scale-105 active:scale-95"
                 >
@@ -867,6 +879,61 @@ function AnalysisPage() {
                    </div>
                  </div>
                </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Proje İsim Girme Modalı */}
+      {showNameModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowNameModal(false)}></div>
+          <div className="glass-panel w-full max-w-md bg-[#0a0a0a] border border-white/20 rounded-3xl shadow-2xl relative z-10 animate-in zoom-in-95 duration-300 p-8">
+            <button
+              onClick={() => setShowNameModal(false)}
+              className="absolute top-4 right-4 bg-white/5 border border-white/10 p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center mb-6">
+              <span className="p-3 bg-sun-green/10 rounded-2xl mr-4 border border-sun-green/30">
+                <PlusCircle className="w-6 h-6 text-sun-green" />
+              </span>
+              <div>
+                <h3 className="text-xl font-bold text-white">Projeyi Adlandır</h3>
+                <p className="text-gray-400 text-sm">Pazara eklemeden önce projenize bir isim verin.</p>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-gray-400 text-xs uppercase font-bold tracking-wider mb-2">Proje Adı</label>
+              <input
+                type="text"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                placeholder="Örn: Karapınar Güneş Tarlası"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-sun-green/50 focus:ring-1 focus:ring-sun-green/30 transition-all"
+                autoFocus
+                onKeyDown={(e) => { if (e.key === 'Enter') handlePublish(); }}
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowNameModal(false)}
+                className="flex-1 px-4 py-3 bg-white/5 text-gray-300 font-bold rounded-xl border border-white/10 hover:bg-white/10 transition-all"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handlePublish}
+                disabled={!projectName.trim()}
+                className="flex-1 px-4 py-3 bg-sun-green text-black font-extrabold rounded-xl hover:bg-emerald-400 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+              >
+                <PlusCircle className="w-4 h-4 mr-2" />
+                Oluştur
+              </button>
             </div>
           </div>
         </div>

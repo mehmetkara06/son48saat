@@ -187,14 +187,30 @@ function MarketplacePage() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const { data, error } = await supabase.from('projects').select('*');
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
-          // Gelen verideki snake_case alanları camelCase'e dönüştür
-          const formattedData = data.map(p => ({
+        // Projeleri ve kalıcı fonlama ilerlemelerini paralel çek
+        const [{ data: dbProjects, error: projErr }, { data: progressData }] = await Promise.all([
+          supabase.from('projects').select('*'),
+          supabase.from('project_progress').select('project_id, funding_progress'),
+        ]);
+
+        if (projErr) throw projErr;
+
+        // İlerleme map'i oluştur: { project_id: funding_progress }
+        const progressMap = {};
+        (progressData || []).forEach(p => {
+          progressMap[p.project_id] = p.funding_progress;
+        });
+
+        // Statik projelere kalıcı ilerlemeyi bindirv
+        const staticWithProgress = projects.map(p => ({
+          ...p,
+          fundingProgress: progressMap[p.id.toString()] ?? p.fundingProgress,
+        }));
+
+        if (dbProjects && dbProjects.length > 0) {
+          const formattedData = dbProjects.map(p => ({
             ...p,
-            fundingProgress: p.funding_progress || 0,
+            fundingProgress: progressMap[p.id] ?? p.funding_progress ?? 0,
             minInvestment: p.min_investment || '$0',
             totalCost: p.total_cost || '$0',
             riskScores: p.risk_scores,
@@ -202,13 +218,14 @@ function MarketplacePage() {
             raised: p.raised || '$0',
             target: p.target || p.total_cost || '$0',
             status: p.status || 'Onay Bekliyor',
+            image: p.image || 'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&q=80&w=600',
           }));
-          setAllProjects([...projects, ...formattedData]);
+          setAllProjects([...staticWithProgress, ...formattedData]);
         } else {
-          setAllProjects(projects);
+          setAllProjects(staticWithProgress);
         }
       } catch (err) {
-        console.error('Projeler Supabase üzerinden yüklenemedi:', err);
+        console.error('Projeler yüklenemedi:', err);
         setAllProjects(projects);
       }
     };
@@ -229,8 +246,17 @@ function MarketplacePage() {
       setInvestStatus('success');
       setBalance(prev => prev - amount);
 
+      // Fonlama ilerlemesini hesapla
+      const totalCostNum = parseFloat(
+        (selectedProject.totalCost || '$1,000,000').replace(/[^0-9.]/g, '')
+      );
+      const addedProgress = totalCostNum > 0 ? (amount / totalCostNum) * 100 : 0;
+      const newProgress = Math.min(100, Math.round((selectedProject.fundingProgress || 0) + addedProgress));
+
+      // Supabase'e kaydet
       if (user) {
-        const { error } = await supabase.from('user_investments').insert({
+        // 1) Yatırım kaydı
+        const { error: insertErr } = await supabase.from('user_investments').insert({
           user_id: user.id,
           project_id: selectedProject.id.toString(),
           amount: amount,
@@ -239,25 +265,38 @@ function MarketplacePage() {
             location: selectedProject.location,
             capacity: selectedProject.capacity,
             roi: selectedProject.roi,
-            fundingProgress: selectedProject.fundingProgress
+            fundingProgress: newProgress
           }
         });
-        if (error) console.error("Yatırım kaydedilemedi:", error);
-      } else {
-        console.warn("Giriş yapmış kullanıcı bulunamadı, yatırım buluta kaydedilemedi!");
+        if (insertErr) console.error("Yatırım kaydedilemedi:", insertErr);
+
+        // 2) Fonlama ilerlemesini kalıcı kaydet
+        const { error: progressErr } = await supabase
+          .from('project_progress')
+          .upsert(
+            { project_id: selectedProject.id.toString(), funding_progress: newProgress, updated_at: new Date().toISOString() },
+            { onConflict: 'project_id' }
+          );
+        if (progressErr) console.error("İlerleme kaydedilemedi:", progressErr);
+
+        // 3) DB projelerinin kendi tablosunu da güncelle
+        if (typeof selectedProject.id === 'string' && selectedProject.id.includes('-')) {
+          await supabase
+            .from('projects')
+            .update({ funding_progress: newProgress })
+            .eq('id', selectedProject.id);
+        }
       }
 
-      // Projenin fonlama ilerlemesini güncelle
-      const totalCostNum = parseFloat(
-        (selectedProject.totalCost || '$1,000,000').replace(/[^0-9.]/g, '')
-      );
-      const addedProgress = totalCostNum > 0 ? (amount / totalCostNum) * 100 : 0;
-      const newProgress = Math.min(100, Math.round(selectedProject.fundingProgress + addedProgress));
+      // Local state'i anında güncelle (bar hemen değişsin)
       setAllProjects(prev => prev.map(p =>
         p.id === selectedProject.id
           ? { ...p, fundingProgress: newProgress }
           : p
       ));
+
+      // Seçili projeyi de güncelle (modal içindeki bar da değişsin)
+      setSelectedProject(prev => prev ? { ...prev, fundingProgress: newProgress } : null);
 
       setTimeout(() => {
         setSelectedProject(null);
