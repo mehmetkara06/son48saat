@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Wallet, Zap, Leaf, TrendingUp, ArrowUpRight, Activity, X, CreditCard, Building2, CheckCircle2 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 const chartDataSets = {
   daily: [
@@ -94,26 +95,6 @@ const staticProjects = [
   },
 ];
 
-function buildProjects() {
-  const portfolio = JSON.parse(localStorage.getItem('sunshare_portfolio') || '[]');
-  const purchased = portfolio.map(p => ({
-    name:         p.name,
-    share:        'Pazar Yeri',
-    value:        `$${p.investedAmount.toLocaleString('en-US', { maximumFractionDigits: 0 })}`,
-    status:       p.status || 'Aktif',
-    location:     p.location,
-    address:      p.location,
-    energyReturn: `${p.capacity} kapasite / ROI: ${p.roi}`,
-    feasibility:  `Pazar yeri üzerinden satın alındı. Yatırım tutarı: $${p.investedAmount.toLocaleString()}. Satın alma tarihi: ${new Date(p.purchasedAt).toLocaleDateString('tr-TR')}.`,
-    _fromMarket:  true,
-  }));
-  const merged = [...staticProjects];
-  purchased.forEach(p => {
-    if (!merged.find(s => s.name === p.name)) merged.push(p);
-  });
-  return merged;
-}
-
 function DashboardPage() {
   const [expandedAsset, setExpandedAsset] = useState(null);
   const [timeframe, setTimeframe] = useState('monthly');
@@ -121,16 +102,74 @@ function DashboardPage() {
   const [withdrawingAsset, setWithdrawingAsset] = useState(null);
   const [withdrawStatus, setWithdrawStatus] = useState('idle');
 
-  const { balance, setBalance } = useOutletContext() || { balance: 0, setBalance: () => {} };
+  const { balance, setBalance, user } = useOutletContext() || { balance: 0, setBalance: () => {}, user: null };
 
-  const [projects, setProjects] = useState(buildProjects);
+  const [projects, setProjects] = useState(staticProjects);
+  const [loading, setLoading] = useState(true);
 
-  // Sayfa odaklandığında (marketplace'den döndüğünde) listeyi güncelle
   useEffect(() => {
-    const onFocus = () => setProjects(buildProjects());
+    const fetchUserPortfolio = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('user_investments')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        // Dönüştürme
+        const purchased = (data || []).map(p => ({
+          id: p.id,
+          name: p.project_snapshot?.name || 'Bilinmeyen Proje',
+          share: 'Pazar Yeri',
+          value: `$${p.amount.toLocaleString('en-US', { maximumFractionDigits: 0 })}`,
+          status: 'Aktif',
+          location: p.project_snapshot?.location || 'Belirtilmedi',
+          address: p.project_snapshot?.location || 'Belirtilmedi',
+          energyReturn: `${p.project_snapshot?.capacity || ''} kapasite / ROI: ${p.project_snapshot?.roi || ''}`,
+          feasibility: `Pazar yeri üzerinden satın alındı. Yatırım tutarı: $${p.amount.toLocaleString()}. Satın alma tarihi: ${new Date(p.created_at).toLocaleDateString('tr-TR')}.`,
+          _fromMarket: true,
+        }));
+
+        // Aynı projeleri grupla
+        const groupedPurchased = purchased.reduce((acc, curr) => {
+          const existing = acc.find(item => item.name === curr.name);
+          if (existing) {
+            const existVal = parseFloat(existing.value.replace(/[^0-9.-]+/g, ''));
+            const currVal = parseFloat(curr.value.replace(/[^0-9.-]+/g, ''));
+            existing.value = `$${(existVal + currVal).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+            existing.feasibility = `Pazar yeri üzerinden çoklu alım. Toplam Yatırım: ${existing.value}. Son işlem: ${new Date().toLocaleDateString('tr-TR')}`;
+          } else {
+            acc.push(curr);
+          }
+          return acc;
+        }, []);
+
+        const merged = [...staticProjects];
+        groupedPurchased.forEach(p => {
+          if (!merged.find(s => s.name === p.name)) merged.push(p);
+        });
+
+        setProjects(merged);
+      } catch (err) {
+        console.error('Portföy yüklenemedi:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserPortfolio();
+
+    // Sekme arası geçişlerde güncel kalsın
+    const onFocus = () => fetchUserPortfolio();
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
-  }, []);
+  }, [user]);
 
   const handleWithdrawAsset = (e, index) => {
     e.stopPropagation();

@@ -174,7 +174,7 @@ function MarketplacePage() {
   const [investAmount, setInvestAmount] = useState('');
   const [investStatus, setInvestStatus] = useState('idle');
 
-  const { balance, setBalance } = useOutletContext() || { balance: 0, setBalance: () => {} };
+  const { balance, setBalance, user } = useOutletContext() || { balance: 0, setBalance: () => {}, user: null };
 
   useEffect(() => {
     if (!selectedProject) {
@@ -225,28 +225,26 @@ function MarketplacePage() {
     }
 
     setInvestStatus('processing');
-    setTimeout(() => {
+    setTimeout(async () => {
       setInvestStatus('success');
       setBalance(prev => prev - amount);
 
-      // Satın alınan varlığı portfolio'ya kaydet
-      const portfolio = JSON.parse(localStorage.getItem('sunshare_portfolio') || '[]');
-      const existingIdx = portfolio.findIndex(p => p.id === selectedProject.id);
-      if (existingIdx >= 0) {
-        portfolio[existingIdx].investedAmount += amount;
-      } else {
-        portfolio.push({
-          id:             selectedProject.id,
-          name:           selectedProject.title,
-          location:       selectedProject.location,
-          capacity:       selectedProject.capacity,
-          roi:            selectedProject.roi,
-          investedAmount: amount,
-          purchasedAt:    new Date().toISOString(),
-          status:         'Aktif',
+      if (user) {
+        const { error } = await supabase.from('user_investments').insert({
+          user_id: user.id,
+          project_id: selectedProject.id.toString(),
+          amount: amount,
+          project_snapshot: {
+            name: selectedProject.title,
+            location: selectedProject.location,
+            capacity: selectedProject.capacity,
+            roi: selectedProject.roi
+          }
         });
+        if (error) console.error("Yatırım kaydedilemedi:", error);
+      } else {
+        console.warn("Giriş yapmış kullanıcı bulunamadı, yatırım buluta kaydedilemedi!");
       }
-      localStorage.setItem('sunshare_portfolio', JSON.stringify(portfolio));
 
       // Projenin fonlama ilerlemesini güncelle
       const totalCostNum = parseFloat(

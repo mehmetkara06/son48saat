@@ -9,7 +9,7 @@ function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-function Layout({ role, onLogout, userFullName }) {
+function Layout({ role, user, onLogout, userFullName }) {
   const isInvestor = role === 'investor';
   const [scrolled, setScrolled] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -251,7 +251,7 @@ function Layout({ role, onLogout, userFullName }) {
 
       {/* Main Content */}
       <main className="flex-1 pt-32 pb-12 px-6 max-w-7xl mx-auto w-full relative z-10">
-        <Outlet context={{ balance, setBalance }} />
+        <Outlet context={{ balance, setBalance, user }} />
       </main>
 
       {/* Wallet Modal */}
