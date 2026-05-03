@@ -45,7 +45,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Layout role={role} onLogout={handleLogout} userFullName={user?.user_metadata?.full_name} />}>
+        <Route path="/" element={<Layout role={role} user={user} onLogout={handleLogout} userFullName={user?.user_metadata?.full_name} />}>
           {role === 'investor' ? (
             <>
               <Route index element={<Navigate to="/dashboard" replace />} />
