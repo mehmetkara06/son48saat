@@ -12,6 +12,7 @@
     background-attachment: fixed;
     overflow-x: hidden;
     -webkit-tap-highlight-color: transparent;
+    --login-bg: #000000;
   }
 }
 
@@ -102,6 +103,7 @@ body.light-theme {
   background-color: #f9fafb !important;
   color: #111827 !important;
   background-image: none !important;
+  --login-bg: #000000;
 }
 body.light-theme .bg-black {
   background-color: #ffffff !important;
