@@ -12,6 +12,22 @@ function App() {
   const [role, setRole] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isLightTheme, setIsLightTheme] = useState(() => {
+    return localStorage.getItem('sunshare-theme') === 'light';
+  });
+
+  // Tema değişikliklerini body class ve localStorage'a yansıt
+  useEffect(() => {
+    if (isLightTheme) {
+      document.body.classList.add('light-theme');
+      localStorage.setItem('sunshare-theme', 'light');
+    } else {
+      document.body.classList.remove('light-theme');
+      localStorage.setItem('sunshare-theme', 'dark');
+    }
+  }, [isLightTheme]);
+
+  const toggleTheme = () => setIsLightTheme(prev => !prev);
 
   useEffect(() => {
     // Check active session on initial load
@@ -39,13 +55,13 @@ function App() {
   }
 
   if (!role) {
-    return <LoginPage />;
+    return <LoginPage isLightTheme={isLightTheme} toggleTheme={toggleTheme} />;
   }
 
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Layout role={role} user={user} onLogout={handleLogout} userFullName={user?.user_metadata?.full_name} />}>
+        <Route path="/" element={<Layout role={role} user={user} onLogout={handleLogout} userFullName={user?.user_metadata?.full_name} isLightTheme={isLightTheme} toggleTheme={toggleTheme} />}>
           {role === 'investor' ? (
             <>
               <Route index element={<Navigate to="/dashboard" replace />} />
